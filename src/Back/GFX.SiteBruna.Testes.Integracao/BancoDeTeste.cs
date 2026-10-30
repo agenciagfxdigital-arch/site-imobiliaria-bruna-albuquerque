@@ -30,6 +30,7 @@ public sealed class BancoDeTeste : IAsyncLifetime
             ["ConnectionStrings:DefaultConnection"] = _container.GetConnectionString(),
             ["WhatsApp:Modo"] = "simulado",
             ["Site:UrlPublica"] = "https://site.teste",
+            ["Jwt:Key"] = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(48)),
         }).Build();
 
         var services = new ServiceCollection();

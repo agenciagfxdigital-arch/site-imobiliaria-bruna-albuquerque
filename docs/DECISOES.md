@@ -45,6 +45,25 @@ públicas sem pesar na VPS. Processamento de imagem (WebP, sem EXIF/GPS) no Dado
 a imagem a partir dos pixels, então nenhum metadado (EXIF/GPS) sobrevive; a orientação do EXIF é aplicada antes.
 Limitação: não lê AVIF nem HEIC (são recusados com mensagem; o WhatsApp já converte para JPEG).
 
+## ADR-006 · Conteúdo editável tipado, com os textos padrão no Modelo
+
+**Data:** 2026-10-30 · **Status:** Aceita
+
+**Decisão.**
+- Cada página editável é um `record` no Modelo (`ConteudoHome`, `ConteudoSobre`, `ConteudoMcmv`), com os textos padrão
+  (`Padrao`) e os limites de tamanho. Os três foram **gerados a partir do `seed-data.ts` do site em Next**, então os
+  textos são idênticos aos revisados pela Bruna; as mensagens de erro usam os rótulos do painel (`page-schema.ts`).
+- `Configuracoes` e `Paginas` são linhas únicas que só entram no banco quando salvas; até lá o site usa os padrões
+  (WhatsApp 49 99930-4262, CRECI/SC 60723, selo de vendido por 30 dias).
+- Usuários do painel com login próprio (`usuarios`), senha só como hash (PBKDF2 do Identity, atrás de `IHasherSenha`),
+  mesma regra de senha forte do sistema interno e a mesma mensagem para e-mail inexistente, senha errada e usuário
+  desativado.
+- Eventos sem dados pessoais nem IP; robôs e pré-visualizações de link são ignorados no Modelo (`Navegador`).
+
+**Consequências.**
+- ✅ Campo novo numa página vira erro de compilação onde precisa ser tratado, não um JSON solto.
+- ➖ Mudar um texto padrão é mudança de código; a Bruna edita pelo painel e o que ela salva vale sobre o padrão.
+
 ## ADR-005 · Schema `site`, estado completo em jsonb e uma capa só pelo Modelo
 
 **Data:** 2026-10-30 · **Status:** Aceita

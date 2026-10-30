@@ -1,3 +1,4 @@
+using GFX.SiteBruna.Aplicacao.DTOs.Imoveis;
 using GFX.SiteBruna.Modelo.Entities;
 
 namespace GFX.SiteBruna.Aplicacao.Interfaces;
@@ -14,6 +15,9 @@ public interface IImovelRepository
     Task<IReadOnlyList<string>> GetCodigosRecentes(int limite);
 
     Task<bool> ExistsByCodigo(string codigo, Guid? excetoId);
+
+    /// <summary>Lista do painel, sem rastrear, alterados por último primeiro.</summary>
+    Task<IReadOnlyList<Imovel>> Pesquisar(FiltroDeImoveis filtro);
 
     /// <summary>Próximo código da sequência (BA101, BA102…).</summary>
     Task<string> ProximoCodigo();

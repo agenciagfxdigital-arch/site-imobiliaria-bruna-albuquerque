@@ -10,6 +10,13 @@ internal sealed class FotoRepository(AppDbContext context) : IFotoRepository
     public Task<List<FotoImovel>> GetDoImovel(Guid imovelId) =>
         context.FotoImovel.Where(f => f.ImovelId == imovelId).OrderBy(f => f.Ordem).ToListAsync();
 
+    public async Task<IReadOnlyDictionary<Guid, string>> GetCapas(IReadOnlyCollection<Guid> imovelIds) =>
+        await context.FotoImovel.AsNoTracking()
+            .Where(f => f.Capa && imovelIds.Contains(f.ImovelId))
+            .GroupBy(f => f.ImovelId)
+            .Select(g => new { ImovelId = g.Key, Url = g.Min(f => f.Url)! })
+            .ToDictionaryAsync(x => x.ImovelId, x => x.Url);
+
     public async Task<IReadOnlySet<string>> CaminhosEmUso(IReadOnlyCollection<string> caminhos) =>
         (await context.FotoImovel.AsNoTracking()
             .Where(f => f.CaminhoNoStorage != null && caminhos.Contains(f.CaminhoNoStorage))

@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.13" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.13" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.13" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
@@ -25,6 +26,7 @@
     <ProjectReference Include="..\GFX.SiteBruna.Modelo\GFX.SiteBruna.Modelo.csproj" />
     <ProjectReference Include="..\GFX.SiteBruna.Aplicacao\GFX.SiteBruna.Aplicacao.csproj" />
     <ProjectReference Include="..\GFX.SiteBruna.Dados\GFX.SiteBruna.Dados.csproj" />
+    <ProjectReference Include="..\GFX.SiteBruna.Api\GFX.SiteBruna.Api.csproj" />
   </ItemGroup>
 
 </Project>

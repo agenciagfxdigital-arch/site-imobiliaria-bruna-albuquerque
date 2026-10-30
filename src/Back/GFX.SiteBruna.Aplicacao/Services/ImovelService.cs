@@ -46,6 +46,25 @@ public sealed class ImovelService(
     public Task<ApiResponse<DadosInternosResponse>> DadosInternos(Guid imovelId) =>
         Resposta.De(async () => DadosInternosResponse.De(await _internos.GetByImovel(imovelId)));
 
+    public Task<ApiResponse<IReadOnlyList<ImovelResumoResponse>>> Listar(FiltroDeImoveis filtro) =>
+        Resposta.De(async () =>
+        {
+            var lista = await _imoveis.Pesquisar(filtro with { Limite = Math.Clamp(filtro.Limite, 1, 500) });
+            var capas = await _fotos.GetCapas([.. lista.Select(i => i.Id)]);
+            return (IReadOnlyList<ImovelResumoResponse>)[.. lista.Select(i => ImovelResumoResponse.De(i, capas.GetValueOrDefault(i.Id)))];
+        });
+
+    /// <summary>Imóvel completo para editar no painel (com proprietário e endereço exato).</summary>
+    public Task<ApiResponse<ImovelDetalheResponse>> Obter(Guid id) =>
+        Resposta.De(async () =>
+        {
+            var imovel = await ExigirImovel(id);
+            var internos = await _internos.GetByImovel(id);
+            var fotos = await _fotos.GetDoImovel(id);
+            return new ImovelDetalheResponse(imovel.Id, imovel.Slug, imovel.ParaDados(internos), [.. fotos.Select(FotoResponse.De)],
+                imovel.Origem, internos?.AtualizadoPor, imovel.VendidoEm, imovel.CriadoEm, imovel.AtualizadoEm);
+        });
+
     /// <summary>Substitui a lista de fotos (ordem, capa, remoções e fotos novas já enviadas ao storage).</summary>
     public Task<ApiResponse<IReadOnlyList<FotoResponse>>> SalvarFotos(Guid imovelId, IReadOnlyList<FotoDesejada> desejadas) =>
         Resposta.De(async () =>

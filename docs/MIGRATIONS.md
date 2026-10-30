@@ -39,5 +39,8 @@ dotnet ef database update --project src/Back/GFX.SiteBruna.Dados --startup-proje
 |---|---|
 | `Inicial` | Schema `site`: imóveis (`properties`, sequência `property_code_seq` a partir de 101), fotos, dados internos, bairros, operadores do WhatsApp, ações pendentes, auditoria e fila de mensagens. Sem índice único de capa (regra do Modelo). |
 
-Conteúdo do site (páginas, FAQ, depoimentos, configurações), eventos e usuários do painel entram com as próximas
-migrations, junto com os módulos.
+| `ConteudoDoSite` | `settings` e `pages` (linha única cada; páginas em uma coluna `jsonb` por página), `faqs`, `testimonials`, `events` (uma visualização por visitante por imóvel) e `usuarios` (login do painel, senha só como hash). Só cria tabelas. |
+
+Depois de aplicar em produção: crie o primeiro usuário do painel (comando da Api, na próxima etapa) e cadastre os
+bairros, depoimentos e FAQ pelo painel. Configurações e páginas começam com os valores padrão (WhatsApp, CRECI e
+textos revisados pela Bruna) e só viram linha no banco quando forem salvas.

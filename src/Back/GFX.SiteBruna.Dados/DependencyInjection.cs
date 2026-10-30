@@ -2,6 +2,7 @@ using GFX.SiteBruna.Aplicacao.Interfaces;
 using GFX.SiteBruna.Dados.Data;
 using GFX.SiteBruna.Dados.Repositories;
 using GFX.SiteBruna.Dados.Servicos;
+using GFX.SiteBruna.Modelo.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -40,7 +41,15 @@ public static class DependencyInjection
         services.AddScoped<IAcaoPendenteRepository, AcaoPendenteRepository>();
         services.AddScoped<IAuditoriaRepository, AuditoriaRepository>();
         services.AddScoped<IFilaDeMensagens, FilaDeMensagens>();
+        services.AddScoped<IConfiguracoesRepository, ConfiguracoesRepository>();
+        services.AddScoped<IPaginasRepository, PaginasRepository>();
+        services.AddScoped<IFaqRepository, FaqRepository>();
+        services.AddScoped<IDepoimentoRepository, DepoimentoRepository>();
+        services.AddScoped<IEventoRepository, EventoRepository>();
+        services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 
+        services.AddSingleton<IHasherSenha, HasherSenha>();
+        services.AddSingleton<ITokenService>(sp => new TokenService(configuration, sp.GetRequiredService<IRelogio>()));
         services.AddSingleton<IRelogio, RelogioDoSistema>();
         services.AddSingleton<IEspera, EsperaReal>();
         services.AddSingleton<IEnderecosDoSite, EnderecosDoSite>();

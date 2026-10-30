@@ -130,6 +130,85 @@ namespace GFX.SiteBruna.Dados.Data.Migrations
                     b.ToTable("neighborhoods", "site");
                 });
 
+            modelBuilder.Entity("GFX.SiteBruna.Modelo.Entities.Configuracoes", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("AtualizadoEm")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("atualizado_em");
+
+                    b.Property<string>("Cidade")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("cidade");
+
+                    b.Property<string>("Creci")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("creci");
+
+                    b.Property<int>("DiasSeloVendido")
+                        .HasColumnType("integer")
+                        .HasColumnName("dias_selo_vendido");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("email");
+
+                    b.Property<string>("Facebook")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("facebook");
+
+                    b.Property<string>("Ga4Id")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("ga4_id");
+
+                    b.Property<string>("Instagram")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("instagram");
+
+                    b.Property<string>("MensagemPadrao")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("mensagem_padrao");
+
+                    b.Property<string>("MetaPixelId")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("meta_pixel_id");
+
+                    b.Property<string>("Whatsapp")
+                        .IsRequired()
+                        .HasMaxLength(13)
+                        .HasColumnType("character varying(13)")
+                        .HasColumnName("whatsapp");
+
+                    b.HasKey("Id")
+                        .HasName("pk_settings");
+
+                    b.ToTable("settings", "site", t =>
+                        {
+                            t.HasCheckConstraint("ck_settings_dias_selo_vendido", "dias_selo_vendido between 0 and 365");
+
+                            t.HasCheckConstraint("ck_settings_linha_unica", "id = 1");
+                        });
+                });
+
             modelBuilder.Entity("GFX.SiteBruna.Modelo.Entities.DadosInternosImovel", b =>
                 {
                     b.Property<Guid>("ImovelId")
@@ -160,6 +239,168 @@ namespace GFX.SiteBruna.Dados.Data.Migrations
                         .HasName("pk_property_internal");
 
                     b.ToTable("property_internal", "site");
+                });
+
+            modelBuilder.Entity("GFX.SiteBruna.Modelo.Entities.Depoimento", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CriadoEm")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("criado_em");
+
+                    b.Property<bool>("ExibirNaHome")
+                        .HasColumnType("boolean")
+                        .HasColumnName("exibir_home");
+
+                    b.Property<string>("FotoUrl")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("foto_url");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("nome");
+
+                    b.Property<int>("Ordem")
+                        .HasColumnType("integer")
+                        .HasColumnName("ordem");
+
+                    b.Property<string>("Texto")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("texto");
+
+                    b.HasKey("Id")
+                        .HasName("pk_testimonials");
+
+                    b.HasIndex("Ordem")
+                        .HasDatabaseName("ix_testimonials_ordem");
+
+                    b.ToTable("testimonials", "site");
+                });
+
+            modelBuilder.Entity("GFX.SiteBruna.Modelo.Entities.Evento", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CriadoEm")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("criado_em");
+
+                    b.Property<string>("Detalhes")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("meta");
+
+                    b.Property<string>("Dispositivo")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("dispositivo");
+
+                    b.Property<Guid?>("ImovelId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("property_id");
+
+                    b.Property<string>("Pagina")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("pagina");
+
+                    b.Property<string>("Referrer")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("referrer");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("tipo");
+
+                    b.Property<string>("UtmCampaign")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("utm_campaign");
+
+                    b.Property<string>("UtmMedium")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("utm_medium");
+
+                    b.Property<string>("UtmSource")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("utm_source");
+
+                    b.Property<string>("VisitanteId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("visitor_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_events");
+
+                    b.HasIndex("CriadoEm")
+                        .HasDatabaseName("ix_events_criado_em");
+
+                    b.HasIndex("ImovelId", "VisitanteId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_events_property_id_visitor_id")
+                        .HasFilter("tipo = 'property_view'");
+
+                    b.HasIndex("Tipo", "CriadoEm")
+                        .HasDatabaseName("ix_events_tipo_criado_em");
+
+                    b.ToTable("events", "site", t =>
+                        {
+                            t.HasCheckConstraint("ck_events_dispositivo", "dispositivo in ('mobile', 'tablet', 'desktop')");
+
+                            t.HasCheckConstraint("ck_events_tipo", "tipo in ('page_view', 'property_view', 'whatsapp_click', 'filter_used', 'share_click')");
+
+                            t.HasCheckConstraint("ck_events_visitor_id", "visitor_id ~ '^[A-Za-z0-9-]{8,64}$'");
+                        });
+                });
+
+            modelBuilder.Entity("GFX.SiteBruna.Modelo.Entities.Faq", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CriadoEm")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("criado_em");
+
+                    b.Property<int>("Ordem")
+                        .HasColumnType("integer")
+                        .HasColumnName("ordem");
+
+                    b.Property<string>("Pergunta")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("pergunta");
+
+                    b.Property<string>("Resposta")
+                        .IsRequired()
+                        .HasMaxLength(3000)
+                        .HasColumnType("character varying(3000)")
+                        .HasColumnName("resposta");
+
+                    b.HasKey("Id")
+                        .HasName("pk_faqs");
+
+                    b.HasIndex("Ordem")
+                        .HasDatabaseName("ix_faqs_ordem");
+
+                    b.ToTable("faqs", "site");
                 });
 
             modelBuilder.Entity("GFX.SiteBruna.Modelo.Entities.FotoImovel", b =>
@@ -522,6 +763,40 @@ namespace GFX.SiteBruna.Dados.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("GFX.SiteBruna.Modelo.Entities.Paginas", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("AtualizadoEm")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("atualizado_em");
+
+                    b.Property<string>("Home")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("home");
+
+                    b.Property<string>("Mcmv")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("mcmv");
+
+                    b.Property<string>("Sobre")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("sobre");
+
+                    b.HasKey("Id")
+                        .HasName("pk_pages");
+
+                    b.ToTable("pages", "site", t =>
+                        {
+                            t.HasCheckConstraint("ck_pages_linha_unica", "id = 1");
+                        });
+                });
+
             modelBuilder.Entity("GFX.SiteBruna.Modelo.Entities.RegistroDeAuditoria", b =>
                 {
                     b.Property<Guid>("Id")
@@ -586,6 +861,52 @@ namespace GFX.SiteBruna.Dados.Data.Migrations
                     b.ToTable("agent_actions", "site");
                 });
 
+            modelBuilder.Entity("GFX.SiteBruna.Modelo.Entities.Usuario", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("boolean")
+                        .HasColumnName("ativo");
+
+                    b.Property<DateTimeOffset>("CriadoEm")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("criado_em");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("email");
+
+                    b.Property<string>("HashDaSenha")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("hash_da_senha");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("nome");
+
+                    b.Property<DateTimeOffset?>("UltimoAcessoEm")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("ultimo_acesso_em");
+
+                    b.HasKey("Id")
+                        .HasName("pk_usuarios");
+
+                    b.HasIndex("Email")
+                        .IsUnique()
+                        .HasDatabaseName("ix_usuarios_email");
+
+                    b.ToTable("usuarios", "site");
+                });
+
             modelBuilder.Entity("GFX.SiteBruna.Modelo.Entities.AcaoPendente", b =>
                 {
                     b.HasOne("GFX.SiteBruna.Modelo.Entities.Imovel", null)
@@ -611,6 +932,15 @@ namespace GFX.SiteBruna.Dados.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_property_internal_imovel_property_id");
+                });
+
+            modelBuilder.Entity("GFX.SiteBruna.Modelo.Entities.Evento", b =>
+                {
+                    b.HasOne("GFX.SiteBruna.Modelo.Entities.Imovel", null)
+                        .WithMany()
+                        .HasForeignKey("ImovelId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_events_imovel_property_id");
                 });
 
             modelBuilder.Entity("GFX.SiteBruna.Modelo.Entities.FotoImovel", b =>

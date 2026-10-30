@@ -1,5 +1,6 @@
 using System.Reflection;
 using GFX.SiteBruna.Aplicacao.DTOs.Imagens;
+using GFX.SiteBruna.Aplicacao.DTOs.Imoveis;
 using GFX.SiteBruna.Aplicacao.Interfaces;
 using GFX.SiteBruna.Aplicacao.Services;
 using GFX.SiteBruna.Modelo.Entities;
@@ -331,6 +332,20 @@ public sealed class Mundo : IUnitOfWork, IRelogio, IEspera, ICacheDoSite, IArmaz
         public Task<bool> ExistsByCodigo(string codigo, Guid? excetoId) =>
             Task.FromResult(m._imoveis.Values.Any(i => i.Codigo == codigo && i.Id != excetoId));
 
+        public Task<IReadOnlyList<Imovel>> Pesquisar(FiltroDeImoveis filtro) =>
+            Task.FromResult<IReadOnlyList<Imovel>>(
+            [
+                .. m._imoveis.Values
+                    .Where(i => string.IsNullOrWhiteSpace(filtro.Busca)
+                                || i.Codigo.Contains(filtro.Busca.Trim(), StringComparison.OrdinalIgnoreCase)
+                                || i.Titulo.Contains(filtro.Busca.Trim(), StringComparison.OrdinalIgnoreCase))
+                    .Where(i => filtro.Status is null || i.Status == filtro.Status)
+                    .Where(i => filtro.Finalidade is null || i.Finalidade == filtro.Finalidade)
+                    .Where(i => filtro.BairroId is null || i.BairroId == filtro.BairroId)
+                    .OrderByDescending(i => i.AtualizadoEm)
+                    .Take(filtro.Limite),
+            ]);
+
         public Task<string> ProximoCodigo() => Task.FromResult($"BA{m._proximoCodigo++}");
 
         public void Add(Imovel imovel) => m.Incluir(imovel.Id, imovel);
@@ -343,6 +358,12 @@ public sealed class Mundo : IUnitOfWork, IRelogio, IEspera, ICacheDoSite, IArmaz
         public Task<List<FotoImovel>> GetDoImovel(Guid imovelId) =>
             Task.FromResult(m._fotos.Values.Where(f => f.ImovelId == imovelId)
                 .Select(f => m.Rastrear(f.Id, m._fotos)).OfType<FotoImovel>().OrderBy(f => f.Ordem).ToList());
+
+        public Task<IReadOnlyDictionary<Guid, string>> GetCapas(IReadOnlyCollection<Guid> imovelIds) =>
+            Task.FromResult<IReadOnlyDictionary<Guid, string>>(m._fotos.Values
+                .Where(f => f.Capa && imovelIds.Contains(f.ImovelId))
+                .GroupBy(f => f.ImovelId)
+                .ToDictionary(g => g.Key, g => g.First().Url));
 
         public Task<IReadOnlySet<string>> CaminhosEmUso(IReadOnlyCollection<string> caminhos) =>
             Task.FromResult<IReadOnlySet<string>>(m._fotos.Values.Select(f => f.CaminhoNoStorage).OfType<string>()
@@ -368,7 +389,16 @@ public sealed class Mundo : IUnitOfWork, IRelogio, IEspera, ICacheDoSite, IArmaz
     {
         public Task<IReadOnlyList<Bairro>> GetAll() => Task.FromResult<IReadOnlyList<Bairro>>([.. m._bairros.Values.OrderBy(b => b.Nome)]);
 
-        public Task<Bairro?> GetById(Guid id) => Task.FromResult(m._bairros.GetValueOrDefault(id));
+        public Task<Bairro?> GetById(Guid id) => Task.FromResult(m.Rastrear(id, m._bairros));
+
+        public Task<bool> ExistsBySlug(string slug, Guid? excetoId) =>
+            Task.FromResult(m._bairros.Values.Any(b => b.Slug == slug && b.Id != excetoId));
+
+        public Task<int> ContarImoveis(Guid bairroId) => Task.FromResult(m._imoveis.Values.Count(i => i.BairroId == bairroId));
+
+        public void Add(Bairro bairro) => m.Incluir(bairro.Id, bairro);
+
+        public void Delete(Bairro bairro) => m._excluidos.Add((typeof(Bairro), bairro.Id));
     }
 
     private sealed class RepositorioDeOperadores(Mundo m) : IOperadorRepository

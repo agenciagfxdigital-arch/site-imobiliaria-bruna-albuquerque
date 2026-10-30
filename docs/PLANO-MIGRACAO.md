@@ -51,9 +51,15 @@ em xUnit.
 - [x] Supabase Storage (REST), imagens (SkiaSharp), Cloud API do WhatsApp e modo simulado, cache do front via HTTP
 - [x] Testes de integração com Postgres descartável (`Testes.Integracao`, precisa do Docker), incluindo o assistente de
   ponta a ponta
-- [ ] Módulos de conteúdo do site (páginas, FAQ, depoimentos, configurações), eventos e usuários do painel: Modelo,
-  Aplicacao, Dados e migration
-- [ ] Api: autenticação, controllers, webhook, limites
+- [x] Módulos de conteúdo (configurações, páginas, FAQ, depoimentos, bairros), eventos e usuários do painel:
+  Modelo, Aplicacao, Dados, migration `ConteudoDoSite` (não aplicada) e testes
+- [ ] Métricas do início do painel (cliques no WhatsApp, visualizações por imóvel): consultas sobre `events`
+- [x] Api: login com JWT (desativado perde o acesso na hora), negação por padrão, controllers do painel e do site,
+  webhook do WhatsApp (assinatura no corpo bruto, processamento em segundo plano), limites por IP, comando
+  `criar-usuario` (ver `docs/CONFIGURACAO.md`)
+- [ ] Imóveis no site público (lista com filtros, página do imóvel, destaques, aluguel, sitemap) — semana 3
+- [ ] Simulação do WhatsApp sem a Meta por script (`whatsapp:simular` do site em Next) — hoje o modo simulado só
+  escreve as respostas no log
 - [ ] Painel: login, imóveis, fotos, páginas, FAQ, depoimentos, bairros, configurações, início
 
 ## Semana 3 — Site público

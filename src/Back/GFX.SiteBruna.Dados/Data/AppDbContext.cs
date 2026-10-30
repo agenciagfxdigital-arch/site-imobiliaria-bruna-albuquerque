@@ -20,6 +20,12 @@ internal sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbC
     public DbSet<AcaoPendente> AcaoPendente => Set<AcaoPendente>();
     public DbSet<RegistroDeAuditoria> RegistroDeAuditoria => Set<RegistroDeAuditoria>();
     public DbSet<MensagemDoWhatsapp> MensagemDoWhatsapp => Set<MensagemDoWhatsapp>();
+    public DbSet<Configuracoes> Configuracoes => Set<Configuracoes>();
+    public DbSet<Paginas> Paginas => Set<Paginas>();
+    public DbSet<Faq> Faq => Set<Faq>();
+    public DbSet<Depoimento> Depoimento => Set<Depoimento>();
+    public DbSet<Evento> Evento => Set<Evento>();
+    public DbSet<Usuario> Usuario => Set<Usuario>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
