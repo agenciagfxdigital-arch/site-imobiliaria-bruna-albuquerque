@@ -1,0 +1,10 @@
+# Contexto dos Dockerfiles = raiz do repositório (docs/DEPLOY.md)
+**/bin/
+**/obj/
+**/.vs/
+**/*.user
+**/Properties/launchSettings.json
+**/*.local.http
+.git/
+docs/
+deploy/

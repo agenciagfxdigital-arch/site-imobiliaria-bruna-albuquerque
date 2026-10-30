@@ -1,0 +1,5 @@
+# Scripts que rodam em Linux (contêineres e a VPS) precisam de LF: com CRLF o bash falha ("\r: command not found").
+# O repositório usa core.autocrlf=true no Windows, então a regra tem de ficar explícita.
+*.sh text eol=lf
+Dockerfile text eol=lf
+Caddyfile text eol=lf
