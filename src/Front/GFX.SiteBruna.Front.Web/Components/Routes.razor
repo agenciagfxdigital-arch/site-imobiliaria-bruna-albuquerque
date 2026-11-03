@@ -1,6 +1,15 @@
-﻿<Router AppAssembly="typeof(Program).Assembly" NotFoundPage="typeof(Pages.NotFound)">
+@inject OrigemDaConexao Origem
+
+<Router AppAssembly="typeof(Program).Assembly" NotFoundPage="typeof(Pages.Site.NaoEncontrada)">
     <Found Context="routeData">
-        <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
+        <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.SiteLayout)" />
         <FocusOnNavigate RouteData="routeData" Selector="h1" />
     </Found>
 </Router>
+
+@code {
+    /// <summary>IP de quem abriu a página, vindo do App.razor (ver <see cref="OrigemDaConexao"/>).</summary>
+    [Parameter] public string? IpDoVisitante { get; set; }
+
+    protected override void OnInitialized() => Origem.Definir(IpDoVisitante);
+}

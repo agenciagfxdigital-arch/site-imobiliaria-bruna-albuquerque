@@ -1,0 +1,63 @@
+@{
+    var indisponivel = Imovel.Status is StatusImovel.Vendido or StatusImovel.Alugado;
+    var selos = Selo.Do(Imovel.Status, Imovel.Finalidade, Imovel.Mcmv, Imovel.Situacao, Imovel.EntradaParcelada,
+        Imovel.AceitaFgts, Imovel.Mobiliado, Imovel.AceitaPet, cartao: true);
+}
+<article class="card group relative flex h-full flex-col overflow-hidden transition-shadow hover:shadow-lg">
+    <div class="relative aspect-[4/3] overflow-hidden bg-navy-100">
+        @if (Imovel.CapaUrl is { } capa)
+        {
+            <img src="@capa" alt="@Imovel.Titulo" loading="@(Prioridade ? "eager" : "lazy")" fetchpriority="@(Prioridade ? "high" : "auto")"
+                 decoding="async" class="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-[1.03] @(indisponivel ? "grayscale-[40%]" : "")" />
+        }
+        else
+        {
+            <div class="grid h-full place-items-center text-sm text-navy-400">Fotos em breve</div>
+        }
+        <div class="absolute inset-x-3 top-3">
+            <Selos Lista="selos" Maximo="3" />
+        </div>
+    </div>
+
+    <div class="flex flex-1 flex-col gap-3 p-4 sm:p-5">
+        <div class="flex items-center justify-between gap-2 text-xs text-navy-500">
+            <span class="inline-flex items-center gap-1">
+                <Icone Nome="map-pin" Classe="size-3.5" />
+                @(Imovel.Bairro ?? "Videira")
+            </span>
+            <span class="font-medium tracking-wide">@Rotulos.Tipo(Imovel.Tipo) · @Imovel.Codigo</span>
+        </div>
+
+        <h3 class="line-clamp-2 text-base leading-snug font-semibold text-navy-900">
+            <a href="@Imovel.Caminho" class="after:absolute after:inset-0 after:content-['']">@Imovel.Titulo</a>
+        </h3>
+
+        <NumerosDoImovel Quartos="Imovel.Quartos" Banheiros="Imovel.Banheiros" Vagas="Imovel.Vagas" Area="Imovel.Area" Compacto />
+
+        <div class="mt-auto flex items-end justify-between gap-3 pt-2">
+            <div>
+                <p class="text-lg font-semibold text-navy-900">@Formato.PrecoPrincipal(Imovel.Finalidade, Imovel.Preco, Imovel.Aluguel)</p>
+                @if (Imovel.Finalidade == Finalidade.Aluguel && Imovel.Condominio > 0)
+                {
+                    <p class="text-xs text-navy-500">+ @Formato.Reais(Imovel.Condominio) condomínio</p>
+                }
+                else if (Imovel.Finalidade == Finalidade.Venda && Imovel.EntradaAPartir > 0)
+                {
+                    <p class="text-xs text-navy-500">Entrada a partir de @Formato.Reais(Imovel.EntradaAPartir)</p>
+                }
+            </div>
+            @if (!indisponivel)
+            {
+                <BotaoWhatsapp Local="card" Mensagem="@Contato.MensagemDoImovel(Imovel.Codigo, Imovel.Titulo)" ImovelId="Imovel.Id"
+                               ImovelCodigo="@Imovel.Codigo" RotuloAcessivel="@($"Falar com a Bruna sobre o imóvel {Imovel.Codigo} no WhatsApp")"
+                               Classe="relative z-10 grid size-11 shrink-0 place-items-center rounded-full bg-whatsapp/10 text-whatsapp-dark transition-colors hover:bg-whatsapp hover:text-white" />
+            }
+        </div>
+    </div>
+</article>
+
+@code {
+    [Parameter, EditorRequired] public CartaoDeImovelResponse Imovel { get; set; } = default!;
+    /// <summary>Primeiros cartões da tela: a foto carrega na hora.</summary>
+    [Parameter] public bool Prioridade { get; set; }
+}

@@ -1,0 +1,18 @@
+@{
+    // 5 passos ficam numa linha só no desktop; os demais casos usam 4 colunas
+    var colunas = Lista.Count switch { 5 => "lg:grid-cols-5", 3 => "lg:grid-cols-3", _ => "lg:grid-cols-4" };
+}
+<ol class="grid gap-4 sm:grid-cols-2 @colunas">
+    @for (var i = 0; i < Lista.Count; i++)
+    {
+        <li class="card relative p-6">
+            <span class="grid size-10 place-items-center rounded-full bg-gold-100 text-sm font-semibold text-gold-700">@(i + 1)</span>
+            <h3 class="mt-4 font-semibold text-navy-900">@Lista[i].Titulo</h3>
+            <p class="mt-2 text-sm leading-relaxed text-navy-600">@Lista[i].Texto</p>
+        </li>
+    }
+</ol>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<Passo> Lista { get; set; } = [];
+}

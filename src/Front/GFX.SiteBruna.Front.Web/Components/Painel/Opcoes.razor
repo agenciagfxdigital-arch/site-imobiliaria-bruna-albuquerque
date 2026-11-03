@@ -1,0 +1,22 @@
+@* Pílulas que ligam e desligam itens de uma lista (diferenciais, garantias). *@
+<div class="flex flex-wrap gap-2">
+    @foreach (var opcao in Todas)
+    {
+        var ligada = Valor.Contains(opcao);
+        <button type="button" aria-pressed="@(ligada ? "true" : "false")" @onclick="() => Alternar(opcao)"
+                class="min-h-10 rounded-full border px-3.5 text-sm @(ligada ? "border-navy-800 bg-navy-800 text-white" : "border-navy-200 bg-white text-navy-700")">@opcao</button>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<string> Lista { get; set; } = [];
+    [Parameter, EditorRequired] public List<string> Valor { get; set; } = [];
+
+    /// <summary>As sugeridas e as que a Bruna escreveu.</summary>
+    private IEnumerable<string> Todas => Lista.Concat(Valor.Where(v => !Lista.Contains(v)));
+
+    private void Alternar(string opcao)
+    {
+        if (!Valor.Remove(opcao)) Valor.Add(opcao);
+    }
+}

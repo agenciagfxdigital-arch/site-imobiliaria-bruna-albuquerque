@@ -1,0 +1,191 @@
+@inject IOptions<OpcoesDoSite> Opcoes
+@* Corpo da página do imóvel. Usado no site e na prévia do painel (que não registra visualização). *@
+@{
+    var p = Imovel;
+    var venda = p.Finalidade == Finalidade.Venda;
+    var indisponivel = p.Status is StatusImovel.Vendido or StatusImovel.Alugado;
+    var mensagem = Contato.MensagemDoImovel(p.Codigo, p.Titulo);
+    var selos = Selo.Do(p.Status, p.Finalidade, p.Mcmv, p.Situacao, p.EntradaParcelada, p.AceitaFgts, p.Mobiliado, p.AceitaPet, cartao: false);
+    var preco = Formato.PrecoPrincipal(p.Finalidade, p.Preco, p.Aluguel);
+    string? PorMes(decimal? valor) => valor > 0 ? $"{Formato.Reais(valor)}/mês" : null;
+}
+
+@if (!Previa)
+{
+    <div hidden data-whatsapp-da-pagina data-mensagem="@mensagem" data-imovel-id="@p.Id" data-imovel-codigo="@p.Codigo"></div>
+    <div hidden data-imovel-visto data-imovel-id="@p.Id" data-imovel-codigo="@p.Codigo"></div>
+}
+
+<div class="mx-auto max-w-6xl sm:px-6 sm:pt-6">
+    <Galeria Fotos="p.Fotos" Titulo="@p.Titulo" />
+</div>
+
+<div class="container-site mt-6 grid gap-10 lg:grid-cols-[1fr_360px]">
+    <div class="min-w-0">
+        @* Cabeçalho *@
+        <div class="space-y-3">
+            <Selos Lista="selos" />
+            <h1 class="text-2xl leading-tight font-semibold text-navy-900 sm:text-3xl">@p.Titulo</h1>
+            <p class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-navy-600">
+                <span class="inline-flex items-center gap-1">
+                    <Icone Nome="map-pin" Classe="size-4 text-gold-500" />
+                    @(p.Bairro is { } bairro ? $"{bairro.Nome}, " : "")@Configuracoes.Cidade
+                </span>
+                <span class="rounded-full bg-navy-100 px-2.5 py-0.5 text-xs font-semibold tracking-wide text-navy-700">Código @p.Codigo</span>
+            </p>
+            <p class="text-3xl font-semibold text-navy-900 lg:hidden">@preco</p>
+        </div>
+
+        @* Condições *@
+        <section class="mt-8" aria-labelledby="condicoes">
+            <h2 id="condicoes" class="text-lg font-semibold">@(venda ? "Condições" : "Valores e garantias")</h2>
+            <dl class="card mt-3 px-5 py-1">
+                @if (venda)
+                {
+                    <Linha Rotulo="Valor" Valor="@(p.Preco > 0 ? Formato.Reais(p.Preco) : "Consulte")" />
+                    <Linha Rotulo="Entrada a partir de" Valor="@(p.EntradaAPartir > 0 ? Formato.Reais(p.EntradaAPartir) : null)" />
+                    <Linha Rotulo="Entrada parcelada" Valor="@(p.EntradaParcelada ? "Sim, com a construtora" : null)" />
+                    <Linha Rotulo="Aceita FGTS" Valor="@(p.AceitaFgts ? "Sim" : null)" />
+                    <Linha Rotulo="Minha Casa Minha Vida" Valor="@(p.Mcmv ? "Sim" : null)" />
+                    <Linha Rotulo="Situação" Valor="@(p.Situacao == Situacao.NaPlanta ? "Na planta" : "Pronto para morar")" />
+                    <Linha Rotulo="Previsão de entrega" Valor="@(p.Situacao == Situacao.NaPlanta ? p.PrevisaoEntrega : null)" />
+                    <Linha Rotulo="Condomínio" Valor="@PorMes(p.Condominio)" />
+                    <Linha Rotulo="IPTU" Valor="@PorMes(p.Iptu)" />
+                }
+                else
+                {
+                    <Linha Rotulo="Aluguel" Valor="@(PorMes(p.Aluguel) ?? "Consulte")" />
+                    <Linha Rotulo="Condomínio" Valor="@PorMes(p.Condominio)" />
+                    <Linha Rotulo="IPTU" Valor="@PorMes(p.Iptu)" />
+                    <Linha Rotulo="Total estimado" Valor="@(p.Aluguel > 0 ? PorMes(p.Aluguel + (p.Condominio ?? 0) + (p.Iptu ?? 0)) : null)" />
+                    <Linha Rotulo="Garantias aceitas" Valor="@(p.Garantias.Count > 0 ? string.Join(", ", p.Garantias) : null)" />
+                    <Linha Rotulo="Mobiliado" Valor="@(p.Mobiliado ? "Sim" : "Não")" />
+                    <Linha Rotulo="Aceita pet" Valor="@(p.AceitaPet ? "Sim" : "Não")" />
+                }
+            </dl>
+        </section>
+
+        @* Características *@
+        <section class="mt-8" aria-labelledby="caracteristicas">
+            <h2 id="caracteristicas" class="text-lg font-semibold">Características</h2>
+            <dl class="card mt-3 px-5 py-1">
+                <Linha Rotulo="Tipo" Valor="@Rotulos.Tipo(p.Tipo)" />
+                <Linha Rotulo="Quartos" Valor="@(p.Quartos > 0 ? p.Quartos.ToString() : null)" />
+                <Linha Rotulo="Suítes" Valor="@(p.Suites > 0 ? p.Suites.ToString() : null)" />
+                <Linha Rotulo="Banheiros" Valor="@(p.Banheiros > 0 ? p.Banheiros.ToString() : null)" />
+                <Linha Rotulo="Vagas de garagem" Valor="@(p.Vagas > 0 ? p.Vagas.ToString() : null)" />
+                <Linha Rotulo="Área" Valor="@Formato.Area(p.Area)" />
+                <Linha Rotulo="Andar" Valor="@p.Andar" />
+            </dl>
+            @if (p.Diferenciais.Count > 0)
+            {
+                <ul class="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    @foreach (var d in p.Diferenciais)
+                    {
+                        <li class="flex items-center gap-2 text-[15px] text-navy-700">
+                            <Icone Nome="check" Classe="size-4 shrink-0 text-gold-500" /> @d
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+
+        @if (!string.IsNullOrWhiteSpace(p.Descricao))
+        {
+            <section class="mt-8" aria-labelledby="descricao">
+                <h2 id="descricao" class="text-lg font-semibold">Sobre o imóvel</h2>
+                <Paragrafos Texto="@p.Descricao" Classe="prose-bruna mt-3 text-[15px]" />
+            </section>
+        }
+
+        @if (Video.Incorporar(p.VideoUrl) is not null)
+        {
+            <section class="mt-8" aria-labelledby="video">
+                <h2 id="video" class="text-lg font-semibold">Vídeo do imóvel</h2>
+                <div class="mt-3"><VideoIncorporado Url="@p.VideoUrl" Titulo="@($"Vídeo: {p.Titulo}")" /></div>
+            </section>
+        }
+
+        @if (p.MostrarMapa)
+        {
+            <section class="mt-8" aria-labelledby="localizacao">
+                <h2 id="localizacao" class="text-lg font-semibold">Localização</h2>
+                <p class="mt-1 text-sm text-navy-500">Região aproximada. O endereço exato eu passo no atendimento.</p>
+                <div class="mt-3"><Mapa Bairro="@p.Bairro?.Nome" Cidade="@Configuracoes.Cidade" /></div>
+            </section>
+        }
+
+        <section class="mt-8">
+            <h2 class="sr-only">Compartilhar</h2>
+            <Compartilhar Url="@($"{Opcoes.Value.UrlBase}{p.Caminho}")" Titulo="@p.Titulo" ImovelId="p.Id" ImovelCodigo="@p.Codigo" />
+        </section>
+    </div>
+
+    @* Bloco da Bruna *@
+    <aside class="lg:sticky lg:top-28 lg:self-start">
+        <div class="card overflow-hidden">
+            <div class="hidden border-b border-navy-100 p-5 lg:block">
+                <p class="text-sm text-navy-500">@(venda ? "Valor" : "Aluguel")</p>
+                <p class="text-3xl font-semibold text-navy-900">@preco</p>
+                @if (!venda && p.Condominio > 0)
+                {
+                    <p class="text-sm text-navy-500">+ @Formato.Reais(p.Condominio) de condomínio</p>
+                }
+            </div>
+            <div class="flex gap-4 p-5">
+                <div class="relative size-16 shrink-0 overflow-hidden rounded-full ring-2 ring-gold-300">
+                    <FotoDaBruna Url="@FotoDaBruna" />
+                </div>
+                <div>
+                    <p class="font-semibold text-navy-900">Bruna Albuquerque</p>
+                    <p class="text-xs text-navy-500">@Configuracoes.Creci</p>
+                </div>
+            </div>
+            <div class="px-5 pb-5">
+                @if (indisponivel)
+                {
+                    var foi = p.Status == StatusImovel.Vendido ? "vendido" : "alugado";
+                    <p class="text-[15px] leading-relaxed text-navy-700">Este imóvel já foi @foi. Me chama que eu te mostro opções parecidas.</p>
+                    <BotaoWhatsapp Local="imovel_indisponivel" Mensagem="@($"Olá, Bruna! Vi que o imóvel {p.Codigo} já foi {foi}. Tem opções parecidas?")"
+                                   ImovelId="p.Id" ImovelCodigo="@p.Codigo" Classe="btn-whatsapp mt-4 w-full">Ver opções parecidas</BotaoWhatsapp>
+                }
+                else
+                {
+                    <p class="text-[15px] leading-relaxed text-navy-700">
+                        @(venda
+                            ? "Quer saber se esse imóvel cabe no seu bolso? Eu faço a simulação com você."
+                            : "Gostou? Me chama que eu tiro suas dúvidas e combino a visita com você.")
+                    </p>
+                    <BotaoWhatsapp Local="imovel_bloco_bruna" Mensagem="@mensagem" ImovelId="p.Id" ImovelCodigo="@p.Codigo"
+                                   Classe="btn-whatsapp mt-4 w-full">Falar com a Bruna</BotaoWhatsapp>
+                }
+            </div>
+        </div>
+    </aside>
+</div>
+
+@if (Semelhantes.Count > 0)
+{
+    <section class="container-site mt-16" aria-labelledby="semelhantes">
+        <div class="flex items-end justify-between gap-4">
+            <h2 id="semelhantes" class="section-title">Imóveis semelhantes</h2>
+            <a href="@(venda ? "/imoveis" : "/aluguel")" class="text-sm font-medium text-navy-700 underline-offset-4 hover:underline">Ver todos</a>
+        </div>
+        <div class="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            @foreach (var s in Semelhantes)
+            {
+                <CartaoDeImovel Imovel="s" />
+            }
+        </div>
+    </section>
+}
+
+@code {
+    [CascadingParameter] public ConfiguracoesResponse Configuracoes { get; set; } = ConfiguracoesResponse.Padrao();
+
+    [Parameter, EditorRequired] public ImovelDoSiteResponse Imovel { get; set; } = default!;
+    [Parameter] public IReadOnlyList<CartaoDeImovelResponse> Semelhantes { get; set; } = [];
+    [Parameter] public string? FotoDaBruna { get; set; }
+    /// <summary>Prévia no painel: sem registrar visualização.</summary>
+    [Parameter] public bool Previa { get; set; }
+}

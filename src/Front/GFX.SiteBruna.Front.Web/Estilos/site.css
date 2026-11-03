@@ -1,0 +1,122 @@
+/*
+  Entrada do Tailwind (v4). O CSS servido é o wwwroot/css/site.css, gerado a partir daqui:
+  ver Estilos/LEIAME.md. Mesmo tema do site em Next (src/app/globals.css): cores navy/gold, Poppins, botões e cartões.
+*/
+@import "tailwindcss" source(none);
+@source "../Components";
+@source "../Apresentacao";
+@source "../wwwroot/js";
+
+/* Poppins hospedada aqui mesmo (licença OFL): nenhuma requisição ao Google antes do consentimento. */
+@font-face { font-family: Poppins; font-style: normal; font-weight: 300; font-display: swap; src: url(../fontes/poppins-300-latin-ext.woff2) format("woff2"); unicode-range: U+100-2BA, U+2BD-2C5, U+2C7-2CC, U+2CE-2D7, U+2DD-2FF, U+304, U+308, U+329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: Poppins; font-style: normal; font-weight: 300; font-display: swap; src: url(../fontes/poppins-300-latin.woff2) format("woff2"); unicode-range: U+0000-00FF, U+131, U+152-153, U+2BB-2BC, U+2C6, U+2DA, U+2DC, U+304, U+308, U+329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: Poppins; font-style: normal; font-weight: 400; font-display: swap; src: url(../fontes/poppins-400-latin-ext.woff2) format("woff2"); unicode-range: U+100-2BA, U+2BD-2C5, U+2C7-2CC, U+2CE-2D7, U+2DD-2FF, U+304, U+308, U+329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: Poppins; font-style: normal; font-weight: 400; font-display: swap; src: url(../fontes/poppins-400-latin.woff2) format("woff2"); unicode-range: U+0000-00FF, U+131, U+152-153, U+2BB-2BC, U+2C6, U+2DA, U+2DC, U+304, U+308, U+329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: Poppins; font-style: normal; font-weight: 500; font-display: swap; src: url(../fontes/poppins-500-latin-ext.woff2) format("woff2"); unicode-range: U+100-2BA, U+2BD-2C5, U+2C7-2CC, U+2CE-2D7, U+2DD-2FF, U+304, U+308, U+329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: Poppins; font-style: normal; font-weight: 500; font-display: swap; src: url(../fontes/poppins-500-latin.woff2) format("woff2"); unicode-range: U+0000-00FF, U+131, U+152-153, U+2BB-2BC, U+2C6, U+2DA, U+2DC, U+304, U+308, U+329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: Poppins; font-style: normal; font-weight: 600; font-display: swap; src: url(../fontes/poppins-600-latin-ext.woff2) format("woff2"); unicode-range: U+100-2BA, U+2BD-2C5, U+2C7-2CC, U+2CE-2D7, U+2DD-2FF, U+304, U+308, U+329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: Poppins; font-style: normal; font-weight: 600; font-display: swap; src: url(../fontes/poppins-600-latin.woff2) format("woff2"); unicode-range: U+0000-00FF, U+131, U+152-153, U+2BB-2BC, U+2C6, U+2DA, U+2DC, U+304, U+308, U+329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: Poppins; font-style: normal; font-weight: 700; font-display: swap; src: url(../fontes/poppins-700-latin-ext.woff2) format("woff2"); unicode-range: U+100-2BA, U+2BD-2C5, U+2C7-2CC, U+2CE-2D7, U+2DD-2FF, U+304, U+308, U+329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: Poppins; font-style: normal; font-weight: 700; font-display: swap; src: url(../fontes/poppins-700-latin.woff2) format("woff2"); unicode-range: U+0000-00FF, U+131, U+152-153, U+2BB-2BC, U+2C6, U+2DA, U+2DC, U+304, U+308, U+329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+/* Mesma métrica da Poppins, para o texto não "pular" enquanto a fonte carrega (valores do next/font). */
+@font-face { font-family: "Poppins Fallback"; src: local(Arial); ascent-override: 93.62%; descent-override: 31.21%; line-gap-override: 8.92%; size-adjust: 112.16%; }
+
+@theme {
+  --font-sans: Poppins, "Poppins Fallback", ui-sans-serif, system-ui, sans-serif;
+
+  --color-navy-50: #f1f4f9;
+  --color-navy-100: #dfe6f1;
+  --color-navy-200: #bfcde3;
+  --color-navy-300: #93a9cc;
+  --color-navy-400: #6280b0;
+  --color-navy-500: #415f93;
+  --color-navy-600: #2f4777;
+  --color-navy-700: #263a62;
+  --color-navy-800: #1f3052;
+  --color-navy-900: #172440;
+  --color-navy-950: #0f182c;
+
+  --color-gold-50: #fbf7ef;
+  --color-gold-100: #f5ecd9;
+  --color-gold-200: #ead7b1;
+  --color-gold-300: #dcbf88;
+  --color-gold-400: #c9a86a;
+  --color-gold-500: #b8914e;
+  --color-gold-600: #9c7840;
+  --color-gold-700: #7d5f36;
+
+  --color-cream: #faf8f4;
+  --color-whatsapp: #1fa855;
+  --color-whatsapp-dark: #178a45;
+
+  --radius-card: 1.25rem;
+  --shadow-card: 0 1px 2px rgb(15 24 44 / 0.04), 0 8px 24px -12px rgb(15 24 44 / 0.18);
+}
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-cream text-navy-900 antialiased;
+  }
+  ::selection {
+    @apply bg-gold-200 text-navy-900;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-gold-500;
+  }
+  /* Elementos que o script do site mostra/esconde */
+  [hidden] {
+    display: none !important;
+  }
+}
+
+@utility container-site {
+  @apply mx-auto w-full max-w-6xl px-4 sm:px-6;
+}
+@utility btn {
+  @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-6 text-[15px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60;
+}
+@utility btn-primary {
+  @apply btn bg-navy-800 text-white hover:bg-navy-700;
+}
+@utility btn-gold {
+  @apply btn bg-gold-400 text-navy-950 hover:bg-gold-300;
+}
+@utility btn-outline {
+  @apply btn border border-navy-200 bg-white text-navy-800 hover:border-navy-400;
+}
+@utility btn-whatsapp {
+  @apply btn bg-whatsapp text-white hover:bg-whatsapp-dark;
+}
+@utility btn-danger {
+  @apply btn border border-rose-200 bg-white text-rose-700 hover:border-rose-400 hover:bg-rose-50;
+}
+@utility eyebrow {
+  @apply text-xs font-semibold tracking-[0.18em] text-gold-600 uppercase;
+}
+@utility section-title {
+  @apply text-2xl leading-tight font-semibold text-navy-900 sm:text-3xl;
+}
+@utility field {
+  @apply block w-full rounded-xl border border-navy-200 bg-white px-4 py-3 text-base text-navy-900 placeholder:text-navy-300 focus:border-navy-500 focus:ring-2 focus:ring-navy-100 focus:outline-none;
+}
+@utility label {
+  @apply mb-1.5 block text-sm font-medium text-navy-800;
+}
+@utility card {
+  @apply rounded-[var(--radius-card)] bg-white shadow-[var(--shadow-card)];
+}
+@utility prose-bruna {
+  & p {
+    @apply mb-4 leading-relaxed text-navy-700 last:mb-0;
+  }
+}
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

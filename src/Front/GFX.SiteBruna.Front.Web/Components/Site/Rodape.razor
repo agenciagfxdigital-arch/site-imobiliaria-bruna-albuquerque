@@ -1,0 +1,80 @@
+<footer class="mt-20 bg-navy-900 pb-24 text-navy-100 sm:pb-10">
+    <div class="container-site grid gap-10 py-14 md:grid-cols-[1.4fr_1fr_1fr]">
+        <div>
+            <Logo Claro />
+            <p class="mt-4 max-w-sm text-sm leading-relaxed text-navy-200">
+                Corretora de imóveis em @Configuracoes.Cidade. Primeiro imóvel, Minha Casa Minha Vida, imóveis na planta e aluguel,
+                explicados com calma.
+            </p>
+            @if (!string.IsNullOrEmpty(Configuracoes.Creci))
+            {
+                <p class="mt-4 text-sm font-medium text-gold-300">@Configuracoes.Creci</p>
+            }
+        </div>
+
+        <div>
+            <h2 class="text-sm font-semibold tracking-wide text-white uppercase">Imóveis</h2>
+            <ul class="mt-4 space-y-2.5 text-sm">
+                <li><a href="/imoveis" class="hover:text-white">Imóveis à venda</a></li>
+                <li><a href="/aluguel" class="hover:text-white">Imóveis para alugar</a></li>
+                <li><a href="/imoveis?situacao=na_planta" class="hover:text-white">Imóveis na planta</a></li>
+                <li><a href="/minha-casa-minha-vida" class="hover:text-white">Minha Casa Minha Vida</a></li>
+                <li><a href="/sobre" class="hover:text-white">Quem é a Bruna</a></li>
+            </ul>
+        </div>
+
+        <div>
+            <h2 class="text-sm font-semibold tracking-wide text-white uppercase">Contato</h2>
+            <ul class="mt-4 space-y-3 text-sm">
+                @if (!string.IsNullOrEmpty(Configuracoes.Whatsapp))
+                {
+                    <li>
+                        <BotaoWhatsapp Local="rodape" ComIcone="false" Classe="inline-flex items-center gap-2 hover:text-white">
+                            <Icone Nome="whatsapp" Classe="size-4 text-gold-300" /> @Formato.Telefone(Configuracoes.Whatsapp)
+                        </BotaoWhatsapp>
+                    </li>
+                }
+                @if (Contato.Instagram(Configuracoes.Instagram) is { Length: > 0 } instagram)
+                {
+                    <li>
+                        <a href="@instagram" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 hover:text-white">
+                            <Icone Nome="instagram" Classe="size-4 text-gold-300" /> Instagram
+                        </a>
+                    </li>
+                }
+                @if (!string.IsNullOrEmpty(Configuracoes.Facebook))
+                {
+                    <li>
+                        <a href="@Configuracoes.Facebook" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 hover:text-white">
+                            <Icone Nome="facebook" Classe="size-4 text-gold-300" /> Facebook
+                        </a>
+                    </li>
+                }
+                @if (!string.IsNullOrEmpty(Configuracoes.Email))
+                {
+                    <li>
+                        <a href="mailto:@Configuracoes.Email" class="inline-flex items-center gap-2 break-all hover:text-white">
+                            <Icone Nome="mail" Classe="size-4 shrink-0 text-gold-300" /> @Configuracoes.Email
+                        </a>
+                    </li>
+                }
+                <li class="inline-flex items-center gap-2">
+                    <Icone Nome="map-pin" Classe="size-4 text-gold-300" /> @Configuracoes.Cidade
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="border-t border-navy-800">
+        <div class="container-site flex flex-col gap-2 py-6 text-xs text-navy-300 sm:flex-row sm:items-center sm:justify-between">
+            <p>© @DateTime.Now.Year Bruna Albuquerque · @Configuracoes.Creci</p>
+            <p class="flex gap-4">
+                <a href="/privacidade" class="hover:text-white">Política de privacidade e cookies</a>
+                <a href="/termos" class="hover:text-white">Termos de uso</a>
+            </p>
+        </div>
+    </div>
+</footer>
+
+@code {
+    [CascadingParameter] public ConfiguracoesResponse Configuracoes { get; set; } = ConfiguracoesResponse.Padrao();
+}

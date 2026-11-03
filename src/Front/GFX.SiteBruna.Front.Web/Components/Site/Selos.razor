@@ -1,0 +1,22 @@
+@if (Lista.Count > 0)
+{
+    <div class="flex flex-wrap gap-1.5">
+        @foreach (var selo in Lista.Take(Maximo ?? int.MaxValue))
+        {
+            <span class="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] leading-none font-semibold tracking-wide whitespace-nowrap @Classe(selo.Tom)">@selo.Texto</span>
+        }
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<Selo> Lista { get; set; } = [];
+    [Parameter] public int? Maximo { get; set; }
+
+    private static string Classe(TomDoSelo tom) => tom switch
+    {
+        TomDoSelo.Dourado => "bg-gold-400 text-navy-950",
+        TomDoSelo.Marinho => "bg-navy-800 text-white",
+        TomDoSelo.Vendido => "bg-rose-700 text-white",
+        _ => "bg-white/95 text-navy-800 ring-1 ring-navy-100",
+    };
+}

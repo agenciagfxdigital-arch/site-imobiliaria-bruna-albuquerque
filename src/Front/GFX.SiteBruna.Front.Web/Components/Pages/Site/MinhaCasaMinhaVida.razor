@@ -1,0 +1,217 @@
+@page "/minha-casa-minha-vida"
+@inject SiteApi Api
+@inject DadosDoSite Dados
+
+<Metadados Titulo="Minha Casa Minha Vida em Videira/SC" Caminho="/minha-casa-minha-vida"
+           Descricao="Entenda o Minha Casa Minha Vida, a entrada parcelada, o FGTS, como funciona a parcela (SAC ou PRICE), as etapas do financiamento e os documentos. Fale com a Bruna, corretora em Videira/SC." />
+
+@if (Conteudo is { } c)
+{
+    var blocos = new[]
+    {
+        ("como-funciona", "landmark", "Como funciona o programa", c.ComoFunciona),
+        ("entrada-parcelada", "piggy-bank", "Entrada parcelada", c.EntradaParcelada),
+        ("fgts", "check", "Como o FGTS ajuda", c.Fgts),
+    };
+
+    @* Abertura *@
+    <section class="container-site grid items-center gap-8 pt-8 sm:pt-12 lg:grid-cols-[1.2fr_0.8fr] lg:gap-14">
+        <div>
+            <p class="eyebrow">Minha Casa Minha Vida</p>
+            <h1 class="mt-3 text-[2rem] leading-tight font-semibold text-balance text-navy-900 sm:text-5xl">@c.Titulo</h1>
+            <p class="mt-5 text-lg leading-relaxed text-navy-600">@c.TextoAbertura</p>
+            <BotaoWhatsapp Local="mcmv_abertura" Classe="btn-whatsapp mt-8"
+                           Mensagem="Olá, Bruna! Quero entender se consigo comprar pelo Minha Casa Minha Vida.">Quero fazer minha simulação</BotaoWhatsapp>
+        </div>
+        <div class="relative mx-auto aspect-[4/5] w-full max-w-[16rem] overflow-hidden rounded-[2rem] bg-navy-100 sm:max-w-sm">
+            <FotoDaBruna Url="@c.Foto" Prioridade />
+        </div>
+    </section>
+
+    @* Como funciona / Entrada parcelada / FGTS *@
+    <section class="container-site mt-20 grid gap-5 lg:grid-cols-3">
+        @foreach (var (id, icone, titulo, texto) in blocos)
+        {
+            <article id="@id" class="card p-6 sm:p-8">
+                <span class="grid size-12 place-items-center rounded-2xl bg-gold-100 text-gold-700"><Icone Nome="@icone" Classe="size-6" /></span>
+                <h2 class="mt-5 text-xl font-semibold">@titulo</h2>
+                <Paragrafos Texto="@texto" Classe="prose-bruna mt-3 text-[15px]" />
+            </article>
+        }
+    </section>
+
+    @* Entenda a parcela (material de educação financeira da CAIXA, adaptado) *@
+    @if (c.Entenda.Count > 0)
+    {
+        <section class="container-site mt-20" aria-labelledby="entenda-parcela">
+            <div class="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
+                <div>
+                    <p class="eyebrow">Sem jargão</p>
+                    <h2 id="entenda-parcela" class="section-title mt-2">Entenda a sua parcela</h2>
+                    <p class="mt-3 leading-relaxed text-navy-600">
+                        Financiamento parece complicado, mas são poucas ideias. Eu explico cada uma antes de você assinar qualquer coisa.
+                    </p>
+                </div>
+                @* Ilustração (sem valores) das partes que formam a parcela *@
+                <figure class="card p-5">
+                    <figcaption class="text-sm font-medium text-navy-700">O que tem dentro de uma parcela</figcaption>
+                    <div class="mt-3 flex h-4 overflow-hidden rounded-full" aria-hidden="true">
+                        @foreach (var parte in PartesDaParcela)
+                        {
+                            <span class="@parte.Cor @parte.Largura"></span>
+                        }
+                    </div>
+                    <ul class="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-4">
+                        @foreach (var parte in PartesDaParcela)
+                        {
+                            <li class="flex items-start gap-2">
+                                <span class="mt-1 size-3 shrink-0 rounded-sm @parte.Cor" aria-hidden="true"></span>
+                                <span><span class="block font-medium text-navy-900">@parte.Nome</span><span class="text-xs text-navy-500">@parte.Descricao</span></span>
+                            </li>
+                        }
+                    </ul>
+                    <p class="mt-3 text-xs text-navy-400">Proporções apenas ilustrativas.</p>
+                </figure>
+            </div>
+            <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                @foreach (var cartao in c.Entenda)
+                {
+                    <article class="card p-6">
+                        <h3 class="font-semibold text-navy-900">@cartao.Titulo</h3>
+                        <p class="mt-2 text-[15px] leading-relaxed text-navy-600">@cartao.Texto</p>
+                    </article>
+                }
+            </div>
+        </section>
+    }
+
+    @if (c.Etapas.Count > 0)
+    {
+        <section class="container-site mt-20" aria-labelledby="etapas">
+            <CabecalhoDeSecao Chamada="Passo a passo" Titulo="Da simulação até a chave" Id="etapas"
+                              Texto="Essas são as etapas do financiamento. Eu fico do seu lado em cada uma delas." />
+            <div class="mt-8"><Passos Lista="c.Etapas" /></div>
+        </section>
+    }
+
+    @* Documentos *@
+    <section class="container-site mt-20" aria-labelledby="documentos">
+        <div class="grid gap-8 rounded-[2rem] bg-navy-800 p-6 text-white sm:p-10 lg:grid-cols-[0.8fr_1.2fr]">
+            <div>
+                <Icone Nome="file-text" Classe="size-8 text-gold-300" />
+                <h2 id="documentos" class="mt-4 text-2xl font-semibold sm:text-3xl">Documentos para separar</h2>
+                <p class="mt-3 text-navy-100">
+                    Não precisa ter tudo agora. Com essa lista em mãos, a análise fica mais rápida, e a dica é entregar tudo de uma vez.
+                </p>
+                @if (!string.IsNullOrWhiteSpace(c.DocumentosObs))
+                {
+                    <p class="mt-4 text-sm leading-relaxed text-navy-200">@c.DocumentosObs</p>
+                }
+            </div>
+            <div class="space-y-6">
+                @foreach (var (titulo, itens) in new[] { ("De quem vai comprar", c.Documentos), ("Para usar o FGTS", c.DocumentosFgts) })
+                {
+                    @if (itens.Count > 0)
+                    {
+                        <div>
+                            <h3 class="text-sm font-semibold tracking-wide text-gold-300 uppercase">@titulo</h3>
+                            <ul class="mt-3 grid gap-2.5">
+                                @foreach (var d in itens)
+                                {
+                                    <li class="flex items-start gap-3 rounded-2xl bg-white/5 px-4 py-3 text-[15px] ring-1 ring-white/10">
+                                        <Icone Nome="check" Classe="mt-0.5 size-4 shrink-0 text-gold-300" /> @d
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </section>
+
+    @if (!string.IsNullOrWhiteSpace(c.DicaPlanejamento))
+    {
+        <aside class="container-site mt-6" aria-label="Dica de planejamento">
+            <div class="flex gap-4 rounded-[var(--radius-card)] bg-gold-50 p-5 ring-1 ring-gold-200 sm:p-6">
+                <Icone Nome="lightbulb" Classe="mt-0.5 size-6 shrink-0 text-gold-600" />
+                <div>
+                    <p class="font-semibold text-navy-900">Antes da simulação</p>
+                    <p class="mt-1 text-[15px] leading-relaxed text-navy-700">@c.DicaPlanejamento</p>
+                </div>
+            </div>
+        </aside>
+    }
+
+    @if (Faqs.Count > 0)
+    {
+        <section class="container-site mt-20" aria-label="Perguntas frequentes">
+            <div class="mx-auto max-w-3xl">
+                <CabecalhoDeSecao Chamada="Dúvidas" Titulo="Perguntas frequentes" />
+                <div class="mt-6"><ListaDePerguntas Lista="Faqs" /></div>
+            </div>
+        </section>
+    }
+
+    @if (Imoveis.Count > 0)
+    {
+        <section class="container-site mt-20" aria-labelledby="imoveis-mcmv">
+            <CabecalhoDeSecao Chamada="Imóveis" Titulo="Imóveis que se encaixam no programa" Id="imoveis-mcmv" />
+            <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                @foreach (var imovel in Imoveis)
+                {
+                    <CartaoDeImovel Imovel="imovel" />
+                }
+            </div>
+        </section>
+    }
+
+    <ChamadaFinal Titulo="Quer saber o que cabe no seu bolso?" Texto="Me chama no WhatsApp. A gente faz a simulação junto, sem compromisso." Local="mcmv_cta_final" />
+
+    <p class="container-site mt-12 flex items-start gap-2 text-sm text-navy-500">
+        <Icone Nome="info" Classe="mt-0.5 size-4 shrink-0" />
+        @c.Aviso
+    </p>
+
+    @if (Faqs.Count > 0)
+    {
+        <JsonLd Dados="PerguntasParaOGoogle" />
+    }
+}
+
+@code {
+    private sealed record Parte(string Nome, string Descricao, string Largura, string Cor);
+
+    private static readonly Parte[] PartesDaParcela =
+    [
+        new("Amortização", "abate a dívida", "w-[58%]", "bg-navy-700"),
+        new("Juros", "custo do crédito", "w-[30%]", "bg-gold-400"),
+        new("Seguro", "proteção", "w-[8%]", "bg-navy-300"),
+        new("Taxas", "administração", "w-[4%]", "bg-gold-200"),
+    ];
+
+    private ConteudoMcmv? Conteudo { get; set; }
+    private IReadOnlyList<FaqResponse> Faqs { get; set; } = [];
+    private IReadOnlyList<CartaoDeImovelResponse> Imoveis { get; set; } = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var faqs = DadosDoSite.Exigir(Api.Faqs());
+        var imoveis = DadosDoSite.Exigir(Api.DoMcmv());
+        Conteudo = (await Dados.Paginas()).Mcmv;
+        Faqs = await faqs;
+        Imoveis = await imoveis;
+    }
+
+    private object PerguntasParaOGoogle => new Dictionary<string, object>
+    {
+        ["@context"] = "https://schema.org",
+        ["@type"] = "FAQPage",
+        ["mainEntity"] = Faqs.Select(f => new Dictionary<string, object>
+        {
+            ["@type"] = "Question",
+            ["name"] = f.Pergunta,
+            ["acceptedAnswer"] = new Dictionary<string, string> { ["@type"] = "Answer", ["text"] = f.Resposta },
+        }).ToArray(),
+    };
+}

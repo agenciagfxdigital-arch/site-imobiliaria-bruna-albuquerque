@@ -1,0 +1,208 @@
+@page "/admin/configuracoes"
+@inject ConteudoApi Conteudo
+@inject UsuarioApi Usuarios
+@inject IJSRuntime Js
+
+<PageTitle>Configurações | Painel</PageTitle>
+
+<div class="mx-auto max-w-3xl space-y-4">
+    <h1 class="text-2xl font-semibold">Configurações</h1>
+
+    @if (Dados is not null)
+    {
+        <Secao Titulo="Contato e site">
+            <div class="grid gap-4 sm:grid-cols-2">
+                <Campo Rotulo="WhatsApp (com DDI e DDD)" @bind-Valor="Dados.Whatsapp" Dica="Ex.: 55 49 99999-9999. Todo botão do site usa este número." />
+                <Campo Rotulo="CRECI" @bind-Valor="Dados.Creci" />
+                <Campo Rotulo="Cidade" @bind-Valor="Dados.Cidade" />
+                <Campo Rotulo="E-mail" @bind-Valor="Dados.Email" />
+                <Campo Rotulo="Instagram" @bind-Valor="Dados.Instagram" Dica="@("@usuario ou o endereço completo")" />
+                <Campo Rotulo="Facebook (endereço)" @bind-Valor="Dados.Facebook" />
+            </div>
+            <Campo Rotulo="Mensagem padrão do WhatsApp" @bind-Valor="Dados.MensagemPadrao" Linhas="2" />
+            <div class="grid gap-4 sm:grid-cols-3">
+                <div>
+                    <label class="label" for="dias-selo">Selo de vendido (dias)</label>
+                    <input id="dias-selo" class="field" type="number" min="0" max="365" @bind="Dados.DiasSeloVendido" />
+                    <p class="mt-1 text-xs text-navy-500">Por quantos dias o vendido/alugado continua no site com o selo.</p>
+                </div>
+                <Campo Rotulo="ID do Google Analytics (GA4)" @bind-Valor="Dados.Ga4Id" Dica="Começa com G-. Só carrega com o aceite de cookies." />
+                <Campo Rotulo="ID do Meta Pixel" @bind-Valor="Dados.MetaPixelId" Dica="Só números. Só carrega com o aceite de cookies." />
+            </div>
+            <Mensagem Erro="@ErroDasConfiguracoes" Sucesso="@AvisoDasConfiguracoes" />
+            <button type="button" class="btn-primary min-h-11 px-5 text-sm" disabled="@Ocupado" @onclick="SalvarConfiguracoes"><Icone Nome="save" Classe="size-4" /> Salvar configurações</button>
+        </Secao>
+    }
+    else
+    {
+        <Mensagem Erro="@ErroDasConfiguracoes" />
+    }
+
+    <Secao Titulo="Bairros">
+        <p class="text-sm text-navy-600">Usados nos filtros do site e no mapa (região aproximada) da página do imóvel.</p>
+        <ul class="divide-y divide-navy-100">
+            @foreach (var b in Bairros)
+            {
+                <li class="flex items-center gap-2 py-2">
+                    <input class="field" @bind="b.Nome" aria-label="Nome do bairro" />
+                    <button type="button" class="btn-outline min-h-11 px-3 text-sm" disabled="@Ocupado" @onclick="() => SalvarBairro(b)">Salvar</button>
+                    <button type="button" class="grid size-11 shrink-0 place-items-center rounded-xl text-rose-700 hover:bg-rose-50" disabled="@Ocupado" aria-label="@($"Excluir {b.Nome}")" @onclick="() => ExcluirBairro(b)">
+                        <Icone Nome="trash" Classe="size-4" />
+                    </button>
+                </li>
+            }
+        </ul>
+        <div class="flex gap-2">
+            <input class="field" placeholder="Novo bairro" @bind="NovoBairro" />
+            <button type="button" class="btn-outline min-h-12 px-4 text-sm" disabled="@Ocupado" @onclick="AdicionarBairro"><Icone Nome="plus" Classe="size-4" /> Adicionar</button>
+        </div>
+        <Mensagem Erro="@ErroDosBairros" Sucesso="@AvisoDosBairros" />
+    </Secao>
+
+    <Secao Titulo="Quem acessa o painel">
+        <ul class="divide-y divide-navy-100">
+            @foreach (var u in ListaDeUsuarios)
+            {
+                <li class="flex items-center justify-between gap-3 py-2 text-sm">
+                    <span>
+                        <span class="block font-medium">@u.Nome</span>
+                        <span class="text-navy-500">@u.Email@(u.Ativo ? "" : " · desativado")</span>
+                    </span>
+                    <span class="text-xs text-navy-400">@(u.UltimoAcessoEm is { } quando ? $"Último acesso: {Formato.Data(quando, comHora: true)}" : "Nunca entrou")</span>
+                </li>
+            }
+        </ul>
+        <div class="grid gap-3 sm:grid-cols-3">
+            <input class="field" placeholder="Nome" @bind="NovoUsuario.Nome" />
+            <input class="field" type="email" placeholder="E-mail" @bind="NovoUsuario.Email" />
+            <input class="field" type="password" placeholder="Senha inicial" autocomplete="new-password" @bind="NovoUsuario.Senha" />
+        </div>
+        <p class="text-xs text-navy-500">Senha com pelo menos 12 caracteres, com maiúscula, minúscula, número e símbolo.</p>
+        <button type="button" class="btn-outline min-h-11 px-4 text-sm" disabled="@Ocupado" @onclick="CriarUsuario"><Icone Nome="plus" Classe="size-4" /> Criar acesso</button>
+        <Mensagem Erro="@ErroDosUsuarios" Sucesso="@AvisoDosUsuarios" />
+    </Secao>
+
+    <Secao Titulo="Minha senha">
+        <div class="grid gap-3 sm:grid-cols-2">
+            <input class="field" type="password" placeholder="Senha atual" autocomplete="current-password" @bind="SenhaAtual" />
+            <input class="field" type="password" placeholder="Nova senha" autocomplete="new-password" @bind="NovaSenha" />
+        </div>
+        <button type="button" class="btn-outline min-h-11 px-4 text-sm" disabled="@Ocupado" @onclick="TrocarSenha"><Icone Nome="key-round" Classe="size-4" /> Trocar senha</button>
+        <Mensagem Erro="@ErroDaSenha" Sucesso="@AvisoDaSenha" />
+    </Secao>
+</div>
+
+@code {
+    private sealed class BairroEditado
+    {
+        public Guid Id { get; init; }
+        public string Nome { get; set; } = "";
+    }
+
+    private sealed class UsuarioNovo
+    {
+        public string Nome { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string Senha { get; set; } = "";
+    }
+
+    private ConfiguracoesResponse? Dados { get; set; }
+    private List<BairroEditado> Bairros { get; set; } = [];
+    private List<UsuarioResponse> ListaDeUsuarios { get; set; } = [];
+    private string NovoBairro { get; set; } = "";
+    private UsuarioNovo NovoUsuario { get; set; } = new();
+    private string SenhaAtual { get; set; } = "";
+    private string NovaSenha { get; set; } = "";
+    private bool Ocupado { get; set; }
+    private string? ErroDasConfiguracoes, AvisoDasConfiguracoes, ErroDosBairros, AvisoDosBairros, ErroDosUsuarios, AvisoDosUsuarios, ErroDaSenha, AvisoDaSenha;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var configuracoes = await Conteudo.Configuracoes();
+        if (configuracoes.Sucesso) Dados = configuracoes.Dados;
+        else ErroDasConfiguracoes = string.Join(" ", configuracoes.Mensagens);
+        await CarregarBairros();
+        await CarregarUsuarios();
+    }
+
+    private async Task CarregarBairros()
+    {
+        var resposta = await Conteudo.Bairros();
+        if (resposta.Sucesso) Bairros = [.. resposta.Dados!.Select(b => new BairroEditado { Id = b.Id, Nome = b.Nome })];
+        else ErroDosBairros = string.Join(" ", resposta.Mensagens);
+    }
+
+    private async Task CarregarUsuarios()
+    {
+        var resposta = await Usuarios.Listar();
+        if (resposta.Sucesso) ListaDeUsuarios = resposta.Dados!;
+        else ErroDosUsuarios = string.Join(" ", resposta.Mensagens);
+    }
+
+    private static string Juntar<T>(ApiResponse<T> r) => string.Join(" ", r.Mensagens);
+
+    private async Task SalvarConfiguracoes()
+    {
+        (ErroDasConfiguracoes, AvisoDasConfiguracoes, Ocupado) = (null, null, true);
+        var resposta = await Conteudo.SalvarConfiguracoes(Dados!);
+        Ocupado = false;
+        if (resposta is { Sucesso: true, Dados: { } salvas }) (Dados, AvisoDasConfiguracoes) = (salvas, "Configurações salvas.");
+        else ErroDasConfiguracoes = Juntar(resposta);
+    }
+
+    private async Task SalvarBairro(BairroEditado b)
+    {
+        (ErroDosBairros, AvisoDosBairros, Ocupado) = (null, null, true);
+        var resposta = await Conteudo.SalvarBairro(new SalvarBairroRequest(b.Id, b.Nome));
+        Ocupado = false;
+        if (resposta.Sucesso) AvisoDosBairros = "Bairro salvo.";
+        else ErroDosBairros = Juntar(resposta);
+    }
+
+    private async Task AdicionarBairro()
+    {
+        (ErroDosBairros, AvisoDosBairros, Ocupado) = (null, null, true);
+        var resposta = await Conteudo.SalvarBairro(new SalvarBairroRequest(null, NovoBairro));
+        Ocupado = false;
+        if (resposta.Sucesso)
+        {
+            NovoBairro = "";
+            await CarregarBairros();
+        }
+        else ErroDosBairros = Juntar(resposta);
+    }
+
+    private async Task ExcluirBairro(BairroEditado b)
+    {
+        if (!await Js.InvokeAsync<bool>("confirm", $"Excluir o bairro {b.Nome}?")) return;
+        (ErroDosBairros, AvisoDosBairros, Ocupado) = (null, null, true);
+        var resposta = await Conteudo.ExcluirBairro(b.Id);
+        Ocupado = false;
+        if (resposta.Sucesso) Bairros.Remove(b);
+        else ErroDosBairros = Juntar(resposta);
+    }
+
+    private async Task CriarUsuario()
+    {
+        (ErroDosUsuarios, AvisoDosUsuarios, Ocupado) = (null, null, true);
+        var resposta = await Usuarios.Criar(new CriarUsuarioRequest(NovoUsuario.Email.Trim(), NovoUsuario.Nome.Trim(), NovoUsuario.Senha));
+        Ocupado = false;
+        if (resposta is { Sucesso: true, Dados: { } criado })
+        {
+            NovoUsuario = new();
+            AvisoDosUsuarios = $"Acesso criado para {criado.Nome}. Passe a senha inicial por um canal seguro.";
+            await CarregarUsuarios();
+        }
+        else ErroDosUsuarios = Juntar(resposta);
+    }
+
+    private async Task TrocarSenha()
+    {
+        (ErroDaSenha, AvisoDaSenha, Ocupado) = (null, null, true);
+        var resposta = await Usuarios.TrocarSenha(new TrocarSenhaRequest(SenhaAtual, NovaSenha));
+        Ocupado = false;
+        (SenhaAtual, NovaSenha) = ("", "");
+        if (resposta.Sucesso) AvisoDaSenha = "Senha trocada.";
+        else ErroDaSenha = Juntar(resposta);
+    }
+}

@@ -1,0 +1,86 @@
+@page "/termos"
+@inject DadosDoSite Dados
+
+<Metadados Titulo="Termos de uso" Caminho="/termos"
+           Descricao="Condições de uso do site e das informações dos imóveis anunciados por Bruna Albuquerque, corretora em Videira/SC." />
+
+<article class="container-site max-w-3xl pt-8 sm:pt-12">
+    <p class="eyebrow">Termos</p>
+    <h1 class="mt-3 text-3xl font-semibold text-navy-900 sm:text-4xl">Termos de uso</h1>
+    <p class="mt-3 text-sm text-navy-500">Última atualização: outubro de 2026</p>
+
+    <div class="mt-8 space-y-8 text-[15px] leading-relaxed text-navy-700 [&_h2]:mb-3 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-navy-900 [&_li]:ml-5 [&_li]:list-disc [&_ul]:space-y-1.5">
+        <section>
+            <h2>Sobre este site</h2>
+            <p>
+                Este site apresenta os imóveis com que eu, Bruna Albuquerque, trabalho como corretora de imóveis em
+                @Configuracoes.Cidade@(string.IsNullOrEmpty(Configuracoes.Creci) ? "" : $" ({Configuracoes.Creci})"). Ele serve para você
+                conhecer as opções e falar comigo. Não há compra, reserva nem pagamento pelo site.
+            </p>
+        </section>
+
+        <section>
+            <h2>Informações dos imóveis</h2>
+            <ul>
+                <li>
+                    Preços, condições de pagamento e disponibilidade podem mudar a qualquer momento, por decisão do proprietário ou da
+                    construtora. Antes de qualquer decisão, confirme comigo as informações atualizadas.
+                </li>
+                <li>
+                    Os anúncios são uma apresentação do imóvel, não uma proposta. As condições só valem depois de combinadas e
+                    registradas em documento próprio.
+                </li>
+                <li>Fotos, plantas e imagens de imóveis na planta podem ser ilustrativas. Medidas e áreas são aproximadas.</li>
+                <li>O mapa mostra só a região aproximada. O endereço exato eu passo diretamente para você.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>Financiamento e Minha Casa Minha Vida</h2>
+            <p>
+                O que eu explico aqui sobre financiamento, FGTS e Minha Casa Minha Vida são orientações gerais para ajudar você a
+                entender o caminho. As regras dos programas mudam com o tempo, e as condições de cada pessoa dependem da análise do
+                banco. Por isso, a gente olha o seu caso com calma, juntos.
+            </p>
+        </section>
+
+        <section>
+            <h2>Conteúdo do site</h2>
+            <p>
+                Textos, fotos e a identidade visual pertencem a mim ou aos proprietários dos imóveis, que autorizaram o uso. Para
+                reproduzir qualquer conteúdo, peça autorização antes. Compartilhar o link de um imóvel com quem você quiser é sempre
+                bem-vindo.
+            </p>
+        </section>
+
+        <section>
+            <h2>Links para outros serviços</h2>
+            <p>
+                Os botões de WhatsApp e Instagram e o mapa abrem serviços de outras empresas, que têm regras próprias de uso e de
+                privacidade.
+            </p>
+        </section>
+
+        <section>
+            <h2>Privacidade</h2>
+            <p>
+                Como os dados são tratados está na
+                <a href="/privacidade" class="font-medium text-navy-900 underline underline-offset-2">política de privacidade e cookies</a>.
+            </p>
+        </section>
+
+        <section>
+            <h2>Mudanças nestes termos</h2>
+            <p>
+                Estes termos podem ser atualizados quando o site mudar. A data no topo da página mostra a versão mais recente. Eles
+                seguem a legislação brasileira, incluindo o Código de Defesa do Consumidor.
+            </p>
+        </section>
+    </div>
+</article>
+
+@code {
+    private ConfiguracoesResponse Configuracoes { get; set; } = ConfiguracoesResponse.Padrao();
+
+    protected override async Task OnInitializedAsync() => Configuracoes = await Dados.Configuracoes();
+}

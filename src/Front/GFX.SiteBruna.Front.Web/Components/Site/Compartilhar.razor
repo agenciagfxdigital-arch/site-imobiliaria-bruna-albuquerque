@@ -1,0 +1,17 @@
+<div class="flex flex-wrap gap-2">
+    <button type="button" class="btn-outline min-h-11 px-4 text-sm" data-compartilhar="whatsapp" data-url="@Url" data-titulo="@Titulo"
+            data-imovel-id="@ImovelId" data-imovel-codigo="@ImovelCodigo">
+        <Icone Nome="whatsapp" Classe="size-4 text-whatsapp" /> Compartilhar no WhatsApp
+    </button>
+    <button type="button" class="btn-outline min-h-11 px-4 text-sm" data-compartilhar="copiar_link" data-url="@Url"
+            data-imovel-id="@ImovelId" data-imovel-codigo="@ImovelCodigo" aria-live="polite">
+        <Icone Nome="link-2" Classe="size-4" /> <span data-texto>Copiar link</span>
+    </button>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Url { get; set; } = "";
+    [Parameter, EditorRequired] public string Titulo { get; set; } = "";
+    [Parameter] public Guid ImovelId { get; set; }
+    [Parameter] public string ImovelCodigo { get; set; } = "";
+}

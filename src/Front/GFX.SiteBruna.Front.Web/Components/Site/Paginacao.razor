@@ -1,0 +1,42 @@
+@if (Paginas > 1)
+{
+    var atual = Math.Min(Filtro.Pagina, Paginas);
+    var numeros = Enumerable.Range(1, Paginas).Where(n => n == 1 || n == Paginas || Math.Abs(n - atual) <= 1).ToList();
+    <nav class="mt-10 flex items-center justify-center gap-1.5" aria-label="Paginação">
+        @if (atual > 1)
+        {
+            <a href="@Link(atual - 1)" class="grid size-11 place-items-center rounded-full border border-navy-200 bg-white" aria-label="Página anterior">
+                <Icone Nome="chevron-left" Classe="size-5" />
+            </a>
+        }
+        @for (var i = 0; i < numeros.Count; i++)
+        {
+            var n = numeros[i];
+            <span class="flex items-center gap-1.5">
+                @if (i > 0 && n - numeros[i - 1] > 1)
+                {
+                    <span class="px-1 text-navy-400">…</span>
+                }
+                <a href="@Link(n)" aria-current="@(n == atual ? "page" : null)"
+                   class="grid size-11 place-items-center rounded-full text-sm font-medium @(n == atual ? "bg-navy-800 text-white" : "border border-navy-200 bg-white text-navy-700")">@n</a>
+            </span>
+        }
+        @if (atual < Paginas)
+        {
+            <a href="@Link(atual + 1)" class="grid size-11 place-items-center rounded-full border border-navy-200 bg-white" aria-label="Próxima página">
+                <Icone Nome="chevron-right" Classe="size-5" />
+            </a>
+        }
+    </nav>
+}
+
+@code {
+    [Parameter, EditorRequired] public string Caminho { get; set; } = "";
+    [Parameter, EditorRequired] public FiltroDoSite Filtro { get; set; } = default!;
+    [Parameter, EditorRequired] public int Total { get; set; }
+    [Parameter] public int ItensPorPagina { get; set; } = 12;
+
+    private int Paginas => (int)Math.Ceiling(Total / (double)ItensPorPagina);
+
+    private string Link(int pagina) => $"{Caminho}{(Filtro with { Pagina = pagina }).ParaUrl()}";
+}

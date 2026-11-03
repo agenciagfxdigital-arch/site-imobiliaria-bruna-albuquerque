@@ -1,0 +1,73 @@
+@inject SiteApi Api
+@inject DadosDoSite Dados
+@inject NavigationManager Navegacao
+
+@if (Lista is not null)
+{
+    <div class="container-site pt-8 sm:pt-12">
+        <header class="max-w-2xl">
+            <p class="eyebrow">@(Finalidade == Finalidade.Venda ? "Comprar" : "Alugar")</p>
+            <h1 class="mt-2 text-3xl font-semibold text-navy-900 sm:text-4xl">@Titulo</h1>
+            <p class="mt-3 leading-relaxed text-navy-600">@Introducao</p>
+        </header>
+
+        <div class="mt-8">
+            <BarraDeFiltros Filtro="Filtro" Bairros="Bairros" Total="Lista.Total" Caminho="@Caminho" />
+        </div>
+
+        @if (Lista.Itens.Count > 0)
+        {
+            <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                @for (var i = 0; i < Lista.Itens.Count; i++)
+                {
+                    <CartaoDeImovel Imovel="Lista.Itens[i]" Prioridade="i < 3" />
+                }
+            </div>
+            <Paginacao Caminho="@Caminho" Filtro="Filtro" Total="Lista.Total" ItensPorPagina="Lista.ItensPorPagina" />
+        }
+        else
+        {
+            <div class="card mt-8 flex flex-col items-center px-6 py-14 text-center">
+                <Icone Nome="search-x" Classe="size-10 text-gold-500" />
+                <p class="mt-4 text-lg font-semibold">Não encontrei imóveis com esses filtros</p>
+                <p class="mt-2 max-w-md text-navy-600">
+                    Nem todo imóvel chega a ser anunciado aqui. Me conta o que você procura que eu busco para você.
+                </p>
+                <BotaoWhatsapp Local="listagem_vazia" Classe="btn-whatsapp mt-6"
+                               Mensagem="@($"Olá, Bruna! Estou procurando um imóvel para {(Finalidade == Finalidade.Venda ? "comprar" : "alugar")} e não encontrei no site. Pode me ajudar?")">
+                    Pedir para a Bruna buscar
+                </BotaoWhatsapp>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [CascadingParameter] private HttpContext HttpContext { get; set; } = default!;
+
+    [Parameter, EditorRequired] public Finalidade Finalidade { get; set; }
+    /// <summary>"/imoveis" ou "/aluguel".</summary>
+    [Parameter, EditorRequired] public string Caminho { get; set; } = "";
+    [Parameter, EditorRequired] public string Titulo { get; set; } = "";
+    [Parameter, EditorRequired] public string Introducao { get; set; } = "";
+
+    private FiltroDoSite Filtro { get; set; } = default!;
+    private ListaDeImoveisResponse? Lista { get; set; }
+    private IReadOnlyList<BairroResponse> Bairros { get; set; } = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var query = HttpContext.Request.Query;
+        Filtro = FiltroDoSite.DaUrl(Finalidade, query);
+        // Formulário enviado sem JavaScript: vai para o endereço limpo, que é o que pode ser compartilhado
+        if (FiltroDoSite.PrecisaLimparAUrl(query))
+        {
+            Navegacao.NavigateTo($"{Caminho}{Filtro.ParaUrl()}");
+            return;
+        }
+        var lista = Api.Imoveis(Filtro);
+        var bairros = Dados.Bairros();
+        Lista = await DadosDoSite.Exigir(lista);
+        Bairros = await bairros;
+    }
+}

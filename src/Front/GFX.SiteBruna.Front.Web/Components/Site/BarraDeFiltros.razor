@@ -1,0 +1,113 @@
+@using System.Text.Json
+@* Formulário GET comum: funciona sem JavaScript (a página limpa a URL); com o site.js, monta o endereço direto e registra o filtro. *@
+@{
+    var venda = Filtro.Finalidade == Finalidade.Venda;
+    var faixas = FaixaDePreco.Da(Filtro.Finalidade);
+    var indiceDaFaixa = FaixaDePreco.Indice(Filtro.Finalidade, Filtro.PrecoMinimo, Filtro.PrecoMaximo);
+    var encontrados = Total == 1 ? "1 imóvel encontrado" : $"{Total} imóveis encontrados";
+}
+<div class="card p-4 sm:p-6">
+    @* Celular: botão que abre o painel de filtros *@
+    <div class="flex items-center justify-between gap-3 md:hidden">
+        <p class="text-sm text-navy-600" aria-live="polite">@encontrados</p>
+        <button type="button" data-abrir-filtros="filtros" class="btn-outline min-h-11 px-4 text-sm">
+            <Icone Nome="sliders-horizontal" Classe="size-4" /> Filtrar@(Filtro.Quantidade > 0 ? $" ({Filtro.Quantidade})" : "")
+        </button>
+    </div>
+
+    <form id="filtros" method="get" action="@Caminho" data-filtros="lista" data-finalidade="@(venda ? "venda" : "aluguel")"
+          data-faixas="@JsonSerializer.Serialize(faixas.Select(f => new { label = f.Rotulo, min = f.Minimo, max = f.Maximo }))"
+          class="hidden md:block data-[aberto]:fixed data-[aberto]:inset-0 data-[aberto]:z-50 data-[aberto]:flex data-[aberto]:flex-col data-[aberto]:bg-cream md:data-[aberto]:static md:data-[aberto]:block md:data-[aberto]:bg-transparent"
+          role="search" aria-label="Filtros">
+        <div class="flex items-center justify-between border-b border-navy-100 px-4 py-3 md:hidden">
+            <p class="font-semibold">Filtros</p>
+            <button type="button" data-fechar-filtros="filtros" class="grid size-11 place-items-center rounded-full hover:bg-navy-100" aria-label="Fechar filtros">
+                <Icone Nome="x" Classe="size-6" />
+            </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-4 md:overflow-visible md:p-0">
+            <div class="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+                <div>
+                    <label class="label" for="f-tipo">Tipo</label>
+                    <select id="f-tipo" name="tipo" class="field">
+                        <option value="">Todos os tipos</option>
+                        @foreach (var tipo in Rotulos.Tipos)
+                        {
+                            <option value="@FiltroDoSite.NaUrl(tipo)" selected="@(Filtro.Tipo == tipo)">@Rotulos.Tipo(tipo)</option>
+                        }
+                    </select>
+                </div>
+                <div>
+                    <label class="label" for="f-bairro">Bairro</label>
+                    <select id="f-bairro" name="bairro" class="field">
+                        <option value="">Todos os bairros</option>
+                        @foreach (var bairro in Bairros)
+                        {
+                            <option value="@bairro.Slug" selected="@(Filtro.Bairro == bairro.Slug)">@bairro.Nome</option>
+                        }
+                    </select>
+                </div>
+                <div>
+                    <label class="label" for="f-preco">@(venda ? "Faixa de preço" : "Valor do aluguel")</label>
+                    <select id="f-preco" name="faixa" class="field">
+                        <option value="">Qualquer valor</option>
+                        @for (var i = 0; i < faixas.Count; i++)
+                        {
+                            <option value="@i" selected="@(i == indiceDaFaixa)">@faixas[i].Rotulo</option>
+                        }
+                    </select>
+                </div>
+                <div>
+                    <label class="label" for="f-ordem">Ordenar por</label>
+                    <select id="f-ordem" name="ordem" class="field">
+                        <option value="recentes" selected="@(Filtro.Ordem == OrdemDoSite.Recentes)">Mais recentes</option>
+                        <option value="menor" selected="@(Filtro.Ordem == OrdemDoSite.MenorPreco)">Menor preço</option>
+                        <option value="maior" selected="@(Filtro.Ordem == OrdemDoSite.MaiorPreco)">Maior preço</option>
+                    </select>
+                </div>
+                <Contador Nome="quartos" Rotulo="Quartos" Valor="Filtro.Quartos" />
+                <Contador Nome="vagas" Rotulo="Vagas" Valor="Filtro.Vagas" />
+                <div class="md:col-span-2">
+                    <span class="label">@(venda ? "Situação e condições" : "Preferências")</span>
+                    <div class="flex flex-wrap gap-2">
+                        @if (venda)
+                        {
+                            <Alternar Nome="situacao" Valor="pronto" Rotulo="Pronto" Marcado="Filtro.Situacao == Situacao.Pronto" />
+                            <Alternar Nome="situacao" Valor="na_planta" Rotulo="Na planta" Marcado="Filtro.Situacao == Situacao.NaPlanta" />
+                            <Alternar Nome="mcmv" Rotulo="Minha Casa Minha Vida" Marcado="Filtro.Mcmv" />
+                            <Alternar Nome="entrada" Rotulo="Entrada parcelada" Marcado="Filtro.EntradaParcelada" />
+                            <Alternar Nome="fgts" Rotulo="Aceita FGTS" Marcado="Filtro.AceitaFgts" />
+                        }
+                        else
+                        {
+                            <Alternar Nome="mobiliado" Rotulo="Mobiliado" Marcado="Filtro.Mobiliado" />
+                            <Alternar Nome="pet" Rotulo="Aceita pet" Marcado="Filtro.AceitaPet" />
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex gap-2 border-t border-navy-100 bg-white p-4 md:mt-6 md:items-center md:justify-between md:gap-4 md:bg-transparent md:px-0 md:pt-5 md:pb-0">
+            <p class="hidden text-sm text-navy-600 md:block" aria-live="polite">@encontrados</p>
+            <div class="flex flex-1 gap-2 md:flex-none">
+                @if (Filtro.Quantidade > 0)
+                {
+                    <a href="@Caminho" class="btn-outline min-h-11 flex-1 px-4 text-sm md:flex-none">Limpar<span class="hidden md:inline">&nbsp;filtros</span></a>
+                }
+                <button type="submit" class="btn-primary min-h-11 flex-[2] px-6 text-sm md:flex-none">
+                    <span class="md:hidden">Ver imóveis</span><span class="hidden md:inline">Aplicar filtros</span>
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public FiltroDoSite Filtro { get; set; } = default!;
+    [Parameter, EditorRequired] public IReadOnlyList<BairroResponse> Bairros { get; set; } = [];
+    [Parameter, EditorRequired] public int Total { get; set; }
+    /// <summary>"/imoveis" ou "/aluguel".</summary>
+    [Parameter, EditorRequired] public string Caminho { get; set; } = "";
+}

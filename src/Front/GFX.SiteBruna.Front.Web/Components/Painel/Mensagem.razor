@@ -1,0 +1,14 @@
+@* Retorno de uma ação no painel: erro em vermelho, sucesso em verde. *@
+@if (!string.IsNullOrEmpty(Erro))
+{
+    <p class="rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-800" role="alert">@Erro</p>
+}
+else if (!string.IsNullOrEmpty(Sucesso))
+{
+    <p class="rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800" role="status">@Sucesso</p>
+}
+
+@code {
+    [Parameter] public string? Erro { get; set; }
+    [Parameter] public string? Sucesso { get; set; }
+}

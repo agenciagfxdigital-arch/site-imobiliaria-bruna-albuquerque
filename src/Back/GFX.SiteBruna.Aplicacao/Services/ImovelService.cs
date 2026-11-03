@@ -1,5 +1,6 @@
 using GFX.SiteBruna.Aplicacao.DTOs;
 using GFX.SiteBruna.Aplicacao.DTOs.Imoveis;
+using GFX.SiteBruna.Aplicacao.DTOs.Site;
 using GFX.SiteBruna.Aplicacao.Interfaces;
 using GFX.SiteBruna.Modelo.Entities;
 using GFX.SiteBruna.Modelo.Enums;
@@ -63,6 +64,15 @@ public sealed class ImovelService(
             var fotos = await _fotos.GetDoImovel(id);
             return new ImovelDetalheResponse(imovel.Id, imovel.Slug, imovel.ParaDados(internos), [.. fotos.Select(FotoResponse.De)],
                 imovel.Origem, internos?.AtualizadoPor, imovel.VendidoEm, imovel.CriadoEm, imovel.AtualizadoEm);
+        });
+
+    /// <summary>Prévia no painel: a página do imóvel como fica no site, em qualquer status (rascunho, pausado…).</summary>
+    public Task<ApiResponse<ImovelDoSiteResponse>> Previa(Guid id) =>
+        Resposta.De(async () =>
+        {
+            var imovel = await ExigirImovel(id);
+            var bairro = imovel.BairroId is { } bairroId ? await _bairros.GetById(bairroId) : null;
+            return ImovelDoSiteResponse.De(imovel, bairro, await _fotos.GetDoImovel(id));
         });
 
     /// <summary>Substitui a lista de fotos (ordem, capa, remoções e fotos novas já enviadas ao storage).</summary>

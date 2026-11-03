@@ -1,0 +1,98 @@
+@page "/imovel/{Trecho}"
+@inject SiteApi Api
+@inject DadosDoSite Dados
+@inject NavigationManager Navegacao
+@inject IOptions<OpcoesDoSite> Opcoes
+
+@if (Pagina is { Imovel: var p })
+{
+    var configuracoes = Configuracoes!;
+    var titulo = Formato.TituloSeo(p.Tipo, p.Quartos, p.Finalidade, p.Bairro?.Nome, configuracoes.Cidade);
+    <Metadados Titulo="@titulo" Caminho="@p.Caminho" Imagem="@p.Fotos.FirstOrDefault()?.Url" ImagemAlt="@p.Titulo"
+               SemIndice="p.Status != StatusImovel.Ativo"
+               Descricao="@Formato.Resumo($"{Formato.PrecoPrincipal(p.Finalidade, p.Preco, p.Aluguel)} · {p.Titulo}. {p.Descricao}")" />
+    <DetalheDoImovel Imovel="p" Semelhantes="Pagina.Semelhantes" FotoDaBruna="@FotoDaBruna" />
+    <JsonLd Dados="Anuncio(p, configuracoes.Cidade)" />
+}
+
+@code {
+    [CascadingParameter] private HttpContext HttpContext { get; set; } = default!;
+
+    /// <summary>"ba101-apartamento-2-quartos-centro" (o código vem antes do primeiro hífen).</summary>
+    [Parameter] public string Trecho { get; set; } = "";
+
+    private PaginaDoImovelResponse? Pagina { get; set; }
+    private ConfiguracoesResponse? Configuracoes { get; set; }
+    private string? FotoDaBruna { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var resposta = await Api.Imovel(Trecho);
+        if (resposta.NaoEncontrado)
+        {
+            Navegacao.NotFound();
+            return;
+        }
+        var pagina = await DadosDoSite.Exigir(Task.FromResult(resposta));
+
+        // Link antigo (título alterado) ou em maiúsculas: vai para o endereço atual, de vez (301)
+        if ($"/imovel/{Trecho}" != pagina.Imovel.Caminho)
+        {
+            HttpContext.Response.Redirect(pagina.Imovel.Caminho, permanent: true);
+            return;
+        }
+
+        var home = (await Dados.Paginas()).Home;
+        Configuracoes = await Dados.Configuracoes();
+        FotoDaBruna = string.IsNullOrEmpty(home.BioFoto) ? home.HeroFoto : home.BioFoto;
+        Pagina = pagina;
+    }
+
+    private object Anuncio(ImovelDoSiteResponse p, string cidade)
+    {
+        var url = Opcoes.Value.UrlBase;
+        var preco = p.Finalidade == Finalidade.Aluguel ? p.Aluguel : p.Preco;
+        var partesDaCidade = cidade.Split('/');
+        return new Dictionary<string, object?>
+        {
+            ["@context"] = "https://schema.org",
+            ["@type"] = "RealEstateListing",
+            ["name"] = p.Titulo,
+            ["description"] = Formato.Resumo(p.Descricao, 300),
+            ["url"] = $"{url}{p.Caminho}",
+            ["datePosted"] = p.CriadoEm,
+            ["image"] = p.Fotos.Select(f => f.Url).ToArray(),
+            ["identifier"] = p.Codigo,
+            ["offers"] = preco > 0
+                ? new Dictionary<string, object>
+                {
+                    ["@type"] = "Offer",
+                    ["price"] = preco,
+                    ["priceCurrency"] = "BRL",
+                    ["businessFunction"] = p.Finalidade == Finalidade.Aluguel
+                        ? "http://purl.org/goodrelations/v1#LeaseOut"
+                        : "http://purl.org/goodrelations/v1#Sell",
+                    ["availability"] = p.Status == StatusImovel.Ativo ? "https://schema.org/InStock" : "https://schema.org/SoldOut",
+                }
+                : null,
+            ["about"] = new Dictionary<string, object?>
+            {
+                ["@type"] = p.Tipo switch { TipoImovel.Apartamento => "Apartment", TipoImovel.Casa => "SingleFamilyResidence", _ => "Place" },
+                ["name"] = Rotulos.Tipo(p.Tipo),
+                ["numberOfRooms"] = p.Quartos > 0 ? p.Quartos : null,
+                ["numberOfBathroomsTotal"] = p.Banheiros > 0 ? p.Banheiros : null,
+                ["floorSize"] = p.Area > 0 ? new Dictionary<string, object> { ["@type"] = "QuantitativeValue", ["value"] = p.Area!, ["unitCode"] = "MTK" } : null,
+                // Só cidade e bairro: o endereço exato nunca vai para o site
+                ["address"] = new Dictionary<string, string>
+                {
+                    ["@type"] = "PostalAddress",
+                    ["addressLocality"] = partesDaCidade[0],
+                    ["addressRegion"] = partesDaCidade.ElementAtOrDefault(1) ?? "SC",
+                    ["addressCountry"] = "BR",
+                },
+                ["containedInPlace"] = p.Bairro is { } b ? new Dictionary<string, string> { ["@type"] = "Place", ["name"] = b.Nome } : null,
+            },
+            ["broker"] = new Dictionary<string, string> { ["@type"] = "RealEstateAgent", ["name"] = "Bruna Albuquerque", ["url"] = url },
+        };
+    }
+}

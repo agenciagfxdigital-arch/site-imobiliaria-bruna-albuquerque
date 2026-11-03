@@ -1,0 +1,11 @@
+<div class="@Classe">
+    @foreach (var p in Formato.Paragrafos(Texto))
+    {
+        <p class="whitespace-pre-line">@p</p>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Texto { get; set; } = "";
+    [Parameter] public string Classe { get; set; } = "prose-bruna";
+}

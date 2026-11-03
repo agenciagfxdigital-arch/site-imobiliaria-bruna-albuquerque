@@ -1,0 +1,53 @@
+@using System.Text.Json
+@* Busca da home. Sem JavaScript, vai para /imoveis com os campos; com o site.js, "Alugar" troca o destino e as faixas. *@
+<form method="get" action="/imoveis" data-filtros="home" data-finalidade="venda" class="card p-4 sm:p-6" aria-label="Busca rápida de imóveis"
+      data-faixas="@JsonSerializer.Serialize(Faixas(Finalidade.Venda))"
+      data-faixas-por-finalidade="@JsonSerializer.Serialize(new { venda = Faixas(Finalidade.Venda), aluguel = Faixas(Finalidade.Aluguel) })">
+    <div class="mb-4 inline-flex rounded-full bg-navy-50 p-1" role="tablist">
+        <button type="button" role="tab" aria-selected="true" data-finalidade-aba="venda"
+                class="min-h-10 rounded-full bg-navy-800 px-6 text-sm font-medium text-white shadow transition-colors">Comprar</button>
+        <button type="button" role="tab" aria-selected="false" data-finalidade-aba="aluguel"
+                class="min-h-10 rounded-full px-6 text-sm font-medium text-navy-700 transition-colors">Alugar</button>
+    </div>
+
+    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_0.8fr_auto]">
+        <select name="bairro" aria-label="Bairro" class="field">
+            <option value="">Qualquer bairro</option>
+            @foreach (var bairro in Bairros)
+            {
+                <option value="@bairro.Slug">@bairro.Nome</option>
+            }
+        </select>
+        <select name="tipo" aria-label="Tipo de imóvel" class="field">
+            <option value="">Qualquer tipo</option>
+            @foreach (var tipo in Rotulos.Tipos)
+            {
+                <option value="@FiltroDoSite.NaUrl(tipo)">@Rotulos.Tipo(tipo)</option>
+            }
+        </select>
+        <select name="faixa" aria-label="Faixa de preço" class="field">
+            <option value="">Qualquer preço</option>
+            @for (var i = 0; i < FaixaDePreco.Venda.Count; i++)
+            {
+                <option value="@i">@FaixaDePreco.Venda[i].Rotulo</option>
+            }
+        </select>
+        <select name="quartos" aria-label="Quartos" class="field">
+            <option value="">Quartos</option>
+            @for (var n = 1; n <= 4; n++)
+            {
+                <option value="@n">@n+ @(n == 1 ? "quarto" : "quartos")</option>
+            }
+        </select>
+        <button type="submit" class="btn-primary sm:col-span-2 lg:col-span-1">
+            <Icone Nome="search" Classe="size-4" /> Buscar
+        </button>
+    </div>
+</form>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<BairroResponse> Bairros { get; set; } = [];
+
+    private static object[] Faixas(Finalidade finalidade) =>
+        [.. FaixaDePreco.Da(finalidade).Select(f => new { label = f.Rotulo, min = f.Minimo, max = f.Maximo })];
+}

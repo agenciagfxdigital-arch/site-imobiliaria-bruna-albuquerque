@@ -1,0 +1,27 @@
+@* Ícone em SVG desenhado no servidor. Nome: um ícone do Lucide ("map-pin") ou uma marca ("whatsapp", "instagram", "facebook"). *@
+@if (Marca is { } desenho)
+{
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="@Classe" aria-hidden="true" focusable="false">@desenho</svg>
+}
+else
+{
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="@Classe" aria-hidden="true" focusable="false"
+         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">@Desenho</svg>
+}
+
+@code {
+    [Parameter, EditorRequired] public string Nome { get; set; } = "";
+    [Parameter] public string Classe { get; set; } = "size-5";
+
+    private MarkupString? Marca => Nome switch
+    {
+        "whatsapp" => new MarkupString(Icones.Whatsapp),
+        "instagram" => new MarkupString(Icones.Instagram),
+        "facebook" => new MarkupString(Icones.Facebook),
+        _ => null,
+    };
+
+    private MarkupString Desenho => new(Icones.Lucide.TryGetValue(Nome, out var d)
+        ? d
+        : throw new ArgumentException($"Ícone desconhecido: {Nome}", nameof(Nome)));
+}

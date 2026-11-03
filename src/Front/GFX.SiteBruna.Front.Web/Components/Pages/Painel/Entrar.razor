@@ -1,0 +1,69 @@
+@page "/admin/entrar"
+@inject UsuarioApi Usuarios
+@inject SessaoDoPainel Sessao
+@inject NavigationManager Navegacao
+
+<PageTitle>Entrar | Painel</PageTitle>
+
+<main class="grid min-h-dvh place-items-center px-4">
+    <div class="card w-full max-w-sm p-6 sm:p-8">
+        <div class="flex items-center gap-2.5">
+            <span class="grid size-10 place-items-center rounded-full border border-gold-400 bg-navy-800 text-sm font-semibold text-gold-300">BA</span>
+            <span class="leading-tight">
+                <span class="block text-sm font-semibold">Painel</span>
+                <span class="block text-xs text-navy-500">Bruna Albuquerque</span>
+            </span>
+        </div>
+        <h1 class="mt-6 text-2xl font-semibold">Entrar</h1>
+        <form class="mt-6 space-y-4" @onsubmit="Enviar">
+            <div>
+                <label class="label" for="email">E-mail</label>
+                <input id="email" type="email" class="field" required autocomplete="email" @bind="Email" />
+            </div>
+            <div>
+                <label class="label" for="senha">Senha</label>
+                <input id="senha" type="password" class="field" required autocomplete="current-password" @bind="Senha" />
+            </div>
+            <Mensagem Erro="@Erro" />
+            <button type="submit" class="btn-primary w-full" disabled="@Enviando">
+                @if (Enviando)
+                {
+                    <Icone Nome="loader-circle" Classe="size-4 animate-spin" />
+                }
+                Entrar
+            </button>
+        </form>
+        <p class="mt-4 text-center text-xs text-navy-500">Esqueceu a senha? Peça para quem cuida do site criar uma nova.</p>
+    </div>
+</main>
+
+@code {
+    [SupplyParameterFromQuery(Name = "volta")] public string? Volta { get; set; }
+
+    private string Email { get; set; } = "";
+    private string Senha { get; set; } = "";
+    private string? Erro { get; set; }
+    private bool Enviando { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (await Sessao.ObterSessao() is not null) Navegacao.NavigateTo(Destino);
+    }
+
+    private string Destino => Volta is { } volta && volta.StartsWith("/admin") && !volta.StartsWith("//") ? volta : "/admin";
+
+    private async Task Enviar()
+    {
+        (Erro, Enviando) = (null, true);
+        var resposta = await Usuarios.Entrar(new EntrarRequest(Email.Trim(), Senha));
+        Enviando = false;
+        if (resposta is { Sucesso: true, Dados: { } sessao })
+        {
+            await Sessao.Entrar(sessao);
+            Navegacao.NavigateTo(Destino);
+            return;
+        }
+        Senha = "";
+        Erro = string.Join(" ", resposta.Mensagens);
+    }
+}

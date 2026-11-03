@@ -109,6 +109,36 @@ public class ApiTests(ApiDeTeste api) : IClassFixture<ApiDeTeste>
     }
 
     [Fact]
+    public async Task Imoveis_do_site_abrem_sem_login_com_filtros_da_query_e_rascunho_responde_404()
+    {
+        var token = await Entrar();
+        var novo = Com(HttpMethod.Post, "/api/Imovel", token);
+        novo.Content = JsonContent.Create(new
+        {
+            dados = new { finalidade = "Aluguel", tipo = "Casa", titulo = "Casa com pátio para alugar", aluguel = 1800, status = "Rascunho", endereco = "Rua B, 200" },
+        });
+        var salvo = JsonDocument.Parse(await (await api.Cliente.SendAsync(novo)).Content.ReadAsStringAsync()).RootElement.GetProperty("dados");
+        var (id, codigo) = (salvo.GetProperty("id").GetGuid(), salvo.GetProperty("codigo").GetString()!);
+
+        Assert.Equal(HttpStatusCode.NotFound, (await api.Cliente.GetAsync($"/api/Site/imovel/{codigo}")).StatusCode);
+        var previa = await api.Cliente.SendAsync(Com(HttpMethod.Get, $"/api/Imovel/{id}/previa", token));
+        Assert.Equal(HttpStatusCode.OK, previa.StatusCode);
+
+        var publicar = Com(HttpMethod.Put, $"/api/Imovel/{id}/status", token);
+        publicar.Content = JsonContent.Create("Ativo");
+        Assert.Equal(HttpStatusCode.OK, (await api.Cliente.SendAsync(publicar)).StatusCode);
+
+        var lista = await api.Cliente.GetStringAsync("/api/Site/imoveis?finalidade=Aluguel&tipo=Casa&precoMaximo=2000&ordem=MenorPreco&pagina=1");
+        Assert.Contains(codigo, lista);
+        Assert.DoesNotContain(codigo, await api.Cliente.GetStringAsync("/api/Site/imoveis?finalidade=Aluguel&precoMaximo=1000"));
+
+        var pagina = await api.Cliente.GetStringAsync($"/api/Site/imovel/{codigo.ToLowerInvariant()}-casa-com-patio");
+        Assert.Contains("Casa com pátio para alugar", pagina);
+        Assert.DoesNotContain("Rua B", pagina); // o site nunca recebe o endereço exato
+        Assert.Contains(codigo.ToLowerInvariant(), await api.Cliente.GetStringAsync("/api/Site/sitemap"));
+    }
+
+    [Fact]
     public async Task Comando_cria_o_primeiro_usuario_e_recusa_senhas_diferentes()
     {
         var email = $"primeiro.{Guid.NewGuid():N}@exemplo.com";

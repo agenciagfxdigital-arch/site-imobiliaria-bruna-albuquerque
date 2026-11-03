@@ -1,0 +1,47 @@
+@page "/admin/imoveis/{Id:guid}/preview"
+@inject ImovelApi Imoveis
+@inject ConteudoApi Conteudo
+
+<PageTitle>Pré-visualização | Painel</PageTitle>
+
+<div class="-mx-4 sm:-mx-6 lg:-mx-10">
+    <div class="mx-4 mb-4 flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-gold-50 px-4 py-3 text-sm ring-1 ring-gold-200 sm:mx-6 lg:mx-10">
+        <span>
+            Pré-visualização: assim o imóvel aparece no site.
+            @if (Imovel is { Status: not StatusImovel.Ativo })
+            {
+                <strong>Ele ainda não está publicado (@Rotulos.Status(Imovel.Status).ToLowerInvariant()).</strong>
+            }
+        </span>
+        <a href="@($"/admin/imoveis/{Id}")" class="btn-outline min-h-10 px-4 text-sm"><Icone Nome="pencil" Classe="size-4" /> Voltar a editar</a>
+    </div>
+
+    <Mensagem Erro="@Erro" />
+    @if (Imovel is not null)
+    {
+        <CascadingValue Value="Configuracoes">
+            <DetalheDoImovel Imovel="Imovel" FotoDaBruna="@FotoDaBruna" Previa />
+        </CascadingValue>
+    }
+</div>
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private ImovelDoSiteResponse? Imovel { get; set; }
+    private ConfiguracoesResponse Configuracoes { get; set; } = ConfiguracoesResponse.Padrao();
+    private string? FotoDaBruna { get; set; }
+    private string? Erro { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var previa = Imoveis.Previa(Id);
+        var configuracoes = Conteudo.Configuracoes();
+        var paginas = Conteudo.Paginas();
+        if ((await configuracoes).Dados is { } c) Configuracoes = c;
+        if ((await paginas).Dados?.Home is { } home) FotoDaBruna = string.IsNullOrEmpty(home.BioFoto) ? home.HeroFoto : home.BioFoto;
+        var resposta = await previa;
+        if (resposta.Sucesso) Imovel = resposta.Dados;
+        else Erro = string.Join(" ", resposta.Mensagens);
+    }
+}

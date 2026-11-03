@@ -1,0 +1,13 @@
+@* Linha de uma lista de valores; não aparece quando não há valor. *@
+@if (!string.IsNullOrEmpty(Valor))
+{
+    <div class="flex items-baseline justify-between gap-4 border-b border-navy-100 py-3 last:border-0">
+        <dt class="text-sm text-navy-500">@Rotulo</dt>
+        <dd class="text-right text-[15px] font-medium text-navy-900">@Valor</dd>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public string Rotulo { get; set; } = "";
+    [Parameter] public string? Valor { get; set; }
+}

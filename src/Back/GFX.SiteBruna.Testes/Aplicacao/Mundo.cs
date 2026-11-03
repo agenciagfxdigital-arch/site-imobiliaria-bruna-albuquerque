@@ -42,6 +42,7 @@ public sealed class Mundo : IUnitOfWork, IRelogio, IEspera, ICacheDoSite, IArmaz
     private readonly Dictionary<Guid, AcaoPendente> _acoes = [];
     private readonly Dictionary<Guid, RegistroDeAuditoria> _auditoria = [];
     private readonly List<MensagemDoWhatsapp> _fila = [];
+    private Configuracoes? _configuracoes;
 
     // Unidade de trabalho: cópias rastreadas, inclusões e exclusões ainda não gravadas
     private readonly Dictionary<(Type, Guid), object> _rastreados = [];
@@ -67,6 +68,7 @@ public sealed class Mundo : IUnitOfWork, IRelogio, IEspera, ICacheDoSite, IArmaz
         Integracao = new IntegracaoService(Operadores, Acoes, Auditoria, Imoveis, Fotos, Internos, Bairros, this, this, this, this, ImovelService);
         Assistente = new AssistenteService(Integracao, this, Fila, Operadores, this, this, this, NullLogger<AssistenteService>.Instance);
         ImagemService = imagens;
+        ImovelDoSite = new ImovelDoSiteService(DoSite, Fotos, Bairros, Configuracoes, this);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -77,6 +79,7 @@ public sealed class Mundo : IUnitOfWork, IRelogio, IEspera, ICacheDoSite, IArmaz
     public ImovelService ImovelService { get; }
     internal IntegracaoService Integracao { get; }
     public AssistenteService Assistente { get; }
+    public ImovelDoSiteService ImovelDoSite { get; }
 
     public IImovelRepository Imoveis => new RepositorioDeImoveis(this);
     public IFotoRepository Fotos => new RepositorioDeFotos(this);
@@ -86,6 +89,8 @@ public sealed class Mundo : IUnitOfWork, IRelogio, IEspera, ICacheDoSite, IArmaz
     public IAcaoPendenteRepository Acoes => new RepositorioDeAcoes(this);
     public IAuditoriaRepository Auditoria => new RepositorioDeAuditoria(this);
     public IFilaDeMensagens Fila => new FilaEmMemoria(this);
+    public IImovelDoSiteRepository DoSite => new RepositorioDoSite(this);
+    public IConfiguracoesRepository Configuracoes => new RepositorioDeConfiguracoes(this);
 
     // ---------------------------------------------------------------------------------------------
     // Estado para conferir nos testes (sempre o que foi gravado)
@@ -114,6 +119,17 @@ public sealed class Mundo : IUnitOfWork, IRelogio, IEspera, ICacheDoSite, IArmaz
     public Operador Operador(string telefone) => _operadores.Values.Single(o => o.Telefone == telefone);
 
     public void Avancar(TimeSpan tempo) => _agora += tempo;
+
+    /// <summary>Grava as configurações com o selo de vendido durando <paramref name="dias"/> (o padrão é 30).</summary>
+    public void DefinirDiasDoSelo(int dias)
+    {
+        var configuracoes = new Configuracoes();
+        configuracoes.Atualizar(new DadosDasConfiguracoes
+        {
+            Whatsapp = "5549999304262", MensagemPadrao = "Olá, Bruna!", Cidade = "Videira/SC", DiasSeloVendido = dias,
+        }, Agora);
+        _configuracoes = configuracoes;
+    }
 
     /// <summary>Grava um imóvel direto no "banco", com <paramref name="quantasFotos"/> fotos.</summary>
     public Imovel CriarImovel(DadosDoImovel dados, int quantasFotos = 0, string? bairro = null)
@@ -399,6 +415,81 @@ public sealed class Mundo : IUnitOfWork, IRelogio, IEspera, ICacheDoSite, IArmaz
         public void Add(Bairro bairro) => m.Incluir(bairro.Id, bairro);
 
         public void Delete(Bairro bairro) => m._excluidos.Add((typeof(Bairro), bairro.Id));
+    }
+
+    /// <summary>As mesmas consultas do <c>ImovelDoSiteRepository</c> do Dados, sobre o que está gravado (sem rastrear).</summary>
+    private sealed class RepositorioDoSite(Mundo m) : IImovelDoSiteRepository
+    {
+        private IEnumerable<Imovel> Ativos => m._imoveis.Values.Where(i => i.Status == StatusImovel.Ativo);
+
+        public Task<(IReadOnlyList<Imovel> Itens, int Total)> Pesquisar(
+            FiltroDoSite filtro, Guid? bairroId, DateTimeOffset agora, int diasSeloVendido)
+        {
+            var venda = filtro.Finalidade == Finalidade.Venda;
+            decimal? Preco(Imovel i) => venda ? i.Preco : i.Aluguel;
+            var visivel = global::GFX.SiteBruna.Modelo.Entities.Imovel.VisivelNoSite(agora, diasSeloVendido).Compile();
+            var encontrados = m._imoveis.Values
+                .Where(visivel)
+                .Where(i => i.Finalidade == filtro.Finalidade)
+                .Where(i => filtro.Tipo is null || i.Tipo == filtro.Tipo)
+                .Where(i => bairroId is null || i.BairroId == bairroId)
+                .Where(i => filtro.PrecoMinimo is null || Preco(i) >= filtro.PrecoMinimo)
+                .Where(i => filtro.PrecoMaximo is null || Preco(i) <= filtro.PrecoMaximo)
+                .Where(i => filtro.Quartos is null || i.Quartos >= filtro.Quartos)
+                .Where(i => filtro.Vagas is null || i.Vagas >= filtro.Vagas)
+                .Where(i => filtro.Situacao is null || i.Situacao == filtro.Situacao)
+                .Where(i => (!filtro.Mcmv || i.Mcmv) && (!filtro.EntradaParcelada || i.EntradaParcelada)
+                            && (!filtro.AceitaFgts || i.AceitaFgts) && (!filtro.Mobiliado || i.Mobiliado)
+                            && (!filtro.AceitaPet || i.AceitaPet))
+                .ToList();
+
+            var ordenada = encontrados.OrderBy(i => i.VendidoEm != null).ThenByDescending(i => i.VendidoEm);
+            ordenada = filtro.Ordem switch
+            {
+                OrdemDoSite.MenorPreco => ordenada.ThenBy(i => Preco(i) == null).ThenBy(Preco),
+                OrdemDoSite.MaiorPreco => ordenada.ThenBy(i => Preco(i) == null).ThenByDescending(Preco),
+                _ => ordenada,
+            };
+            IReadOnlyList<Imovel> pagina =
+            [
+                .. ordenada.ThenByDescending(i => i.CriadoEm).ThenBy(i => i.Id)
+                    .Skip(filtro.Pular).Take(FiltroDoSite.ItensPorPagina).Select(Clonar),
+            ];
+            return Task.FromResult((pagina, encontrados.Count));
+        }
+
+        public Task<Imovel?> GetVisivelByCodigo(string codigo, DateTimeOffset agora, int diasSeloVendido) =>
+            Task.FromResult(m._imoveis.Values.FirstOrDefault(i => i.Codigo == codigo && i.EstaVisivelNoSite(agora, diasSeloVendido))
+                is { } imovel ? Clonar(imovel) : null);
+
+        public Task<IReadOnlyList<Imovel>> Destaques(int limite) =>
+            Task.FromResult<IReadOnlyList<Imovel>>([.. Ativos.Where(i => i.Destaque).OrderByDescending(i => i.CriadoEm).Take(limite).Select(Clonar)]);
+
+        public Task<IReadOnlyList<Imovel>> Recentes(Finalidade? finalidade, bool somenteMcmv, int limite) =>
+            Task.FromResult<IReadOnlyList<Imovel>>(
+            [
+                .. Ativos.Where(i => (finalidade is null || i.Finalidade == finalidade) && (!somenteMcmv || i.Mcmv))
+                    .OrderByDescending(i => i.CriadoEm).Take(limite).Select(Clonar),
+            ]);
+
+        public Task<IReadOnlyList<Imovel>> CandidatosASemelhantes(Imovel referencia, int limite) =>
+            Task.FromResult<IReadOnlyList<Imovel>>(
+            [
+                .. Ativos.Where(i => i.Id != referencia.Id && i.Finalidade == referencia.Finalidade
+                                     && (i.Tipo == referencia.Tipo || (referencia.BairroId != null && i.BairroId == referencia.BairroId)))
+                    .OrderByDescending(i => i.CriadoEm).Take(limite).Select(Clonar),
+            ]);
+
+        public Task<IReadOnlyList<(string Codigo, string Slug, DateTimeOffset AtualizadoEm)>> ParaSitemap(int limite) =>
+            Task.FromResult<IReadOnlyList<(string, string, DateTimeOffset)>>(
+                [.. Ativos.OrderByDescending(i => i.AtualizadoEm).Take(limite).Select(i => (i.Codigo, i.Slug, i.AtualizadoEm))]);
+    }
+
+    private sealed class RepositorioDeConfiguracoes(Mundo m) : IConfiguracoesRepository
+    {
+        public Task<Configuracoes?> Get() => Task.FromResult(m._configuracoes);
+
+        public void Add(Configuracoes configuracoes) => m._configuracoes = configuracoes;
     }
 
     private sealed class RepositorioDeOperadores(Mundo m) : IOperadorRepository

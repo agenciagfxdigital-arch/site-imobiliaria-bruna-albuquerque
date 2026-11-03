@@ -1,0 +1,25 @@
+@* Link para o WhatsApp da Bruna. Todo clique vira evento de conversão (site.js, pelo data-whatsapp). *@
+<a href="@Contato.Whatsapp(Configuracoes.Whatsapp, Mensagem ?? Configuracoes.MensagemPadrao)" target="_blank" rel="noopener noreferrer"
+   aria-label="@RotuloAcessivel" class="@Classe" data-whatsapp="@Local" data-imovel-id="@ImovelId" data-imovel-codigo="@ImovelCodigo"
+   data-whatsapp-geral="@(Mensagem is null ? "" : null)">
+    @if (ComIcone)
+    {
+        <Icone Nome="whatsapp" Classe="size-5 shrink-0" />
+    }
+    @ChildContent
+</a>
+
+@code {
+    [CascadingParameter] public ConfiguracoesResponse Configuracoes { get; set; } = ConfiguracoesResponse.Padrao();
+
+    /// <summary>Onde o botão está (vai junto no evento, para saber quais botões convertem mais).</summary>
+    [Parameter, EditorRequired] public string Local { get; set; } = "";
+    /// <summary>Sem mensagem própria, usa a padrão; na página do imóvel, o site.js troca pela mensagem do imóvel.</summary>
+    [Parameter] public string? Mensagem { get; set; }
+    [Parameter] public Guid? ImovelId { get; set; }
+    [Parameter] public string? ImovelCodigo { get; set; }
+    [Parameter] public string Classe { get; set; } = "btn-whatsapp";
+    [Parameter] public bool ComIcone { get; set; } = true;
+    [Parameter] public string? RotuloAcessivel { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

@@ -1,0 +1,36 @@
+@* Lista editável de cartões com título e texto (passos, etapas). *@
+<div>
+    <span class="label">@Rotulo</span>
+    <ol class="space-y-3">
+        @for (var i = 0; i < Itens.Count; i++)
+        {
+            var indice = i;
+            var passo = Itens[indice];
+            <li class="rounded-xl border border-navy-100 p-3">
+                <div class="flex items-center justify-between gap-2">
+                    <span class="text-sm font-medium text-navy-700">@(indice + 1).</span>
+                    <div class="flex gap-1">
+                        <button type="button" class="grid size-9 place-items-center rounded-full hover:bg-navy-50 disabled:opacity-30" disabled="@(indice == 0)" aria-label="Subir" @onclick="() => Mover(indice, -1)"><Icone Nome="arrow-up" Classe="size-4" /></button>
+                        <button type="button" class="grid size-9 place-items-center rounded-full hover:bg-navy-50 disabled:opacity-30" disabled="@(indice == Itens.Count - 1)" aria-label="Descer" @onclick="() => Mover(indice, 1)"><Icone Nome="arrow-down" Classe="size-4" /></button>
+                        <button type="button" class="grid size-9 place-items-center rounded-full text-rose-700 hover:bg-rose-50" aria-label="Remover" @onclick="() => Itens.RemoveAt(indice)"><Icone Nome="trash" Classe="size-4" /></button>
+                    </div>
+                </div>
+                <input class="field mt-2" placeholder="Título" @bind="passo.Titulo" />
+                <textarea class="field mt-2 min-h-20" placeholder="Texto" @bind="passo.Texto"></textarea>
+            </li>
+        }
+    </ol>
+    <button type="button" class="btn-outline mt-2 min-h-10 px-4 text-sm" @onclick="() => Itens.Add(new Passo())"><Icone Nome="plus" Classe="size-4" /> Adicionar</button>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Rotulo { get; set; } = "";
+    [Parameter, EditorRequired] public List<Passo> Itens { get; set; } = [];
+
+    private void Mover(int indice, int direcao)
+    {
+        var item = Itens[indice];
+        Itens.RemoveAt(indice);
+        Itens.Insert(indice + direcao, item);
+    }
+}

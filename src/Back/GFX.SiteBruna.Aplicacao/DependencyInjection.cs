@@ -12,6 +12,7 @@ public static class DependencyInjection
     {
         services.AddScoped<ImagemService>();
         services.AddScoped<ImovelService>();
+        services.AddScoped<ImovelDoSiteService>();
         services.AddScoped<ConteudoService>();
         services.AddScoped<FaqService>();
         services.AddScoped<DepoimentoService>();

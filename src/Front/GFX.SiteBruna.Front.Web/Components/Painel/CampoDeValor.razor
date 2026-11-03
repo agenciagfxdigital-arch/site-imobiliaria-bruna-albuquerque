@@ -1,0 +1,23 @@
+<div>
+    <label class="label" for="@Id">@Rotulo</label>
+    <div class="relative">
+        <span class="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-navy-400">R$</span>
+        <input id="@Id" class="field pl-11" inputmode="decimal" placeholder="0" value="@Texto" @onchange="Mudar" />
+    </div>
+    @if (!string.IsNullOrEmpty(Dica))
+    {
+        <p class="mt-1 text-xs text-navy-500">@Dica</p>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Id { get; set; } = "";
+    [Parameter, EditorRequired] public string Rotulo { get; set; } = "";
+    [Parameter] public string? Dica { get; set; }
+    [Parameter] public decimal? Valor { get; set; }
+    [Parameter] public EventCallback<decimal?> ValorChanged { get; set; }
+
+    private string Texto => Numero.Escrever(Valor);
+
+    private Task Mudar(ChangeEventArgs e) => ValorChanged.InvokeAsync(Numero.Ler(e.Value?.ToString()));
+}

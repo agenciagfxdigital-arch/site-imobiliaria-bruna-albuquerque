@@ -1,0 +1,21 @@
+@* Controle segmentado ("Todos", 1+, 2+...) feito com rádios: funciona sem JavaScript. *@
+<fieldset>
+    <legend class="label">@Rotulo</legend>
+    <div class="flex w-full max-w-sm rounded-full bg-white p-1 ring-1 ring-navy-200">
+        @foreach (var n in Opcoes)
+        {
+            <label class="flex min-h-10 cursor-pointer items-center justify-center rounded-full text-sm font-medium whitespace-nowrap transition-colors text-navy-600 hover:bg-navy-50 hover:text-navy-900 has-[:checked]:bg-navy-800 has-[:checked]:text-white has-[:checked]:shadow-sm has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-gold-500 @(n is null ? "flex-[1.6] px-3" : "flex-1 tabular-nums")">
+                <input type="radio" name="@Nome" value="@(n?.ToString() ?? "")" checked="@(Valor == n)" class="sr-only" />
+                @(n is null ? "Todos" : $"{n}+")
+            </label>
+        }
+    </div>
+</fieldset>
+
+@code {
+    private static readonly int?[] Opcoes = [null, 1, 2, 3, 4];
+
+    [Parameter, EditorRequired] public string Nome { get; set; } = "";
+    [Parameter, EditorRequired] public string Rotulo { get; set; } = "";
+    [Parameter] public int? Valor { get; set; }
+}

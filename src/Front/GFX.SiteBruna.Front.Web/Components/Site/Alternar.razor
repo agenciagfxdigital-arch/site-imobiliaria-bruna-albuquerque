@@ -1,0 +1,12 @@
+@* Botão liga/desliga do filtro (caixa de seleção com cara de pílula). *@
+<label class="inline-flex min-h-10 cursor-pointer items-center rounded-full border px-4 text-sm transition-colors border-navy-200 bg-white text-navy-700 hover:border-navy-400 has-[:checked]:border-navy-800 has-[:checked]:bg-navy-800 has-[:checked]:text-white has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-gold-500">
+    <input type="checkbox" name="@Nome" value="@Valor" checked="@Marcado" class="sr-only" />
+    @Rotulo
+</label>
+
+@code {
+    [Parameter, EditorRequired] public string Nome { get; set; } = "";
+    [Parameter] public string Valor { get; set; } = "1";
+    [Parameter, EditorRequired] public string Rotulo { get; set; } = "";
+    [Parameter] public bool Marcado { get; set; }
+}

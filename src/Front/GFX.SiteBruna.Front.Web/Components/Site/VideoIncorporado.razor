@@ -1,0 +1,14 @@
+@if (Video.Incorporar(Url) is { } endereco)
+{
+    var emPe = Video.EmPe(Url);
+    <div class="@(emPe ? "mx-auto w-full max-w-sm" : "w-full")">
+        <iframe src="@endereco" title="@Titulo" loading="lazy" allowfullscreen
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                class="w-full rounded-2xl border-0 bg-navy-100 @(emPe ? "aspect-[9/16]" : "aspect-video")"></iframe>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public string Url { get; set; } = "";
+    [Parameter, EditorRequired] public string Titulo { get; set; } = "";
+}

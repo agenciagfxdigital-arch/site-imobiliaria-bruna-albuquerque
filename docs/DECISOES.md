@@ -82,3 +82,45 @@ Limitação: não lê AVIF nem HEIC (são recusados com mensagem; o WhatsApp já
 - ✅ Banco fechado para acesso direto; mesmo com a chave anônima vazada, não há tabela exposta.
 - ➖ O conteúdo de `jsonb` acompanha o formato do `DadosDoImovel`: renomear uma propriedade exige cuidado com os
   registros antigos de auditoria (que só servem para desfazer em 30 minutos).
+
+## ADR-007 · Site público estático com um script só; painel interativo
+
+**Data:** 2026-11-03 · **Status:** Aceita
+
+**Contexto.** No Next, o site tinha componentes "use client" (filtros, galeria, cookies, métricas). No Blazor, deixar
+o site interativo exigiria um circuito (WebSocket) por visitante.
+
+**Decisão.**
+- Páginas do site em renderização estática no servidor, sem `blazor.web.js`. O comportamento no navegador fica em
+  `wwwroot/js/site.js` (JavaScript puro, sem dependências). Filtros são formulários GET: sem JavaScript, a página recebe
+  `faixa=` e campos vazios e redireciona para o endereço limpo; com JavaScript, o endereço já sai limpo.
+- Mesmos endereços e parâmetros do Next (`/imovel/{codigo}-{slug}`, `?tipo=casa&preco_min=...`): links de anúncios
+  continuam valendo. Slug antigo redireciona com 301 para o atual.
+- Painel interativo (`InteractiveServer`, sem pré-renderização), como o sistema interno.
+- Tailwind v4 com o mesmo tema; o CSS gerado vai no repositório para o build .NET não depender de Node.
+
+**Consequências.**
+- ✅ HTML pronto, leve e com cache; nenhuma conexão aberta por visitante.
+- ➖ Classe Tailwind nova exige regenerar o CSS (`Estilos/LEIAME.md`).
+
+## ADR-008 · Cache de saída no lugar do ISR, invalidado pela Api
+
+**Data:** 2026-11-03 · **Status:** Aceita
+
+**Decisão.** Output caching do ASP.NET Core nas páginas do site (5 minutos, por endereço e query, etiqueta `site`); a
+Api chama `POST /_cache/invalidar` (cabeçalho `X-Chave-Cache`) a cada escrita, e o selo de vendido vence sozinho pelo
+prazo do cache. O Blazor grava o cookie de antiforgery em toda página estática, o que impediria o cache: como o site
+não tem formulário POST, esse cookie é retirado das respostas do site (`Cache/SemAntiforgeryNoSite`); o painel mantém.
+
+**Consequências.**
+- ✅ A edição no painel ou pelo WhatsApp aparece no site na hora (testado de ponta a ponta).
+- ➖ Se um dia o site tiver formulário POST, a página dele precisa ficar fora dessa regra.
+
+## ADR-009 · Visibilidade no site como expressão do Modelo
+
+**Data:** 2026-11-03 · **Status:** Aceita
+
+**Decisão.** `Imovel.VisivelNoSite(agora, dias)` devolve a regra como `Expression<Func<Imovel,bool>>`, que o Dados usa na
+consulta; `Imovel.EstaVisivelNoSite` continua para o objeto em memória. Um teste do Modelo garante que as duas formas
+concordam, e um teste de integração confere a tradução para SQL. Endereço da página (`Imovel.Caminho`) e escolha de
+semelhantes (`ImoveisSemelhantes`) também ficam no Modelo; o Front recebe o caminho pronto.

@@ -1,0 +1,34 @@
+@page "/admin/paginas"
+
+<PageTitle>Páginas | Painel</PageTitle>
+
+<div class="space-y-5">
+    <div>
+        <h1 class="text-2xl font-semibold">Páginas</h1>
+        <p class="mt-1 text-sm text-navy-600">Os textos e as fotos que aparecem no site.</p>
+    </div>
+    <ul class="grid gap-3 sm:grid-cols-2">
+        @foreach (var (href, titulo, texto) in Itens)
+        {
+            <li>
+                <a href="@href" class="card flex h-full items-center justify-between gap-4 p-5 transition-shadow hover:shadow-lg">
+                    <span>
+                        <span class="block font-semibold text-navy-900">@titulo</span>
+                        <span class="text-sm text-navy-600">@texto</span>
+                    </span>
+                    <Icone Nome="chevron-right" Classe="size-5 text-navy-400" />
+                </a>
+            </li>
+        }
+    </ul>
+</div>
+
+@code {
+    private static readonly (string, string, string)[] Itens =
+    [
+        ("/admin/paginas/home", "Página inicial", "Abertura, passo a passo, quem é a Bruna, chamada final"),
+        ("/admin/paginas/sobre", "Sobre", "História, como eu trabalho, números, entregas de chave"),
+        ("/admin/paginas/mcmv", "Minha Casa Minha Vida", "Explicações, etapas, documentos e aviso"),
+        ("/admin/paginas/faq", "Perguntas frequentes", "Aparecem na página do Minha Casa Minha Vida"),
+    ];
+}

@@ -64,8 +64,19 @@ dependência, não o teste.
   (assinatura conferida no corpo bruto), limites de requisição, `GlobalExceptionHandler`.
 
 ### `Front.Web`
-- Site público com renderização estática no servidor (bom para o Google) e painel interativo.
-- As telas usam clientes de `Services/` que sempre devolvem `ApiResponse<T>`; regras continuam na Api.
+- **Site público** (`Components/Pages/Site`): renderização estática no servidor, HTML pronto para o Google, sem
+  WebSocket. `[ExcludeFromInteractiveRouting]` no `_Imports` da pasta; o `App.razor` só carrega o `blazor.web.js` no
+  painel. A interação do site (cookies, métricas, menu, filtros, galeria, mapa, compartilhar) fica em
+  `wwwroot/js/site.js`, que só acrescenta comportamento: filtros são formulários GET e funcionam sem JavaScript.
+- **Painel** (`Components/Pages/Painel`, rotas `/admin`): Blazor interativo no servidor, sem pré-renderização. A sessão
+  (token da Api) fica no `localStorage` criptografada pelo Data Protection (`Autenticacao/SessaoDoPainel`).
+- `Services/`: clientes da Api (`SiteApi` público; `ImovelApi`, `ConteudoApi`, `UsuarioApi` com token) que sempre
+  devolvem `ApiResponse<T>`; `DadosDoSite` evita chamar a Api duas vezes na mesma requisição (layout + página).
+- `Apresentacao/`: só formatação e leitura da URL (equivalente a `src/lib` do Next). Regras continuam na Api/Modelo.
+- `Endpoints/RotasDoSite`: `sitemap.xml`, `robots.txt`, `POST /eventos` (repassa à Api, que fica na rede interna) e
+  `POST /_cache/invalidar` (chamado pela Api a cada escrita).
+- `Cache/`: cache de saída das páginas do site (5 min, separado por endereço e filtros), descartado na invalidação.
+- CSS: Tailwind gerado a partir de `Estilos/site.css` para `wwwroot/css/site.css` (versionado; ver `Estilos/LEIAME.md`).
 
 ## 3. Convenções
 

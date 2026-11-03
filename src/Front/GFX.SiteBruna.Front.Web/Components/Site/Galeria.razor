@@ -1,0 +1,83 @@
+@if (Fotos.Count == 0)
+{
+    <div class="grid aspect-[4/3] place-items-center bg-navy-100 text-navy-400 sm:rounded-3xl">Fotos em breve</div>
+}
+else
+{
+    <div data-galeria>
+        <div class="relative overflow-hidden bg-navy-950 sm:rounded-3xl">
+            <div data-galeria-faixa class="no-scrollbar flex aspect-[4/3] snap-x snap-mandatory overflow-x-auto sm:aspect-[16/9]">
+                @for (var i = 0; i < Fotos.Count; i++)
+                {
+                    <button type="button" data-galeria-ampliar class="relative h-full w-full shrink-0 snap-center" aria-label="Ampliar foto @(i + 1) de @Fotos.Count">
+                        <img src="@Fotos[i].Url" alt="@Titulo — foto @(i + 1)" loading="@(i == 0 ? "eager" : "lazy")" fetchpriority="@(i == 0 ? "high" : "auto")"
+                             decoding="async" class="absolute inset-0 size-full object-cover" />
+                    </button>
+                }
+            </div>
+
+            @if (Fotos.Count > 1)
+            {
+                <button type="button" data-galeria-anterior aria-label="Foto anterior"
+                        class="absolute top-1/2 left-3 hidden size-11 -translate-y-1/2 place-items-center rounded-full bg-white/90 text-navy-900 shadow sm:grid">
+                    <Icone Nome="chevron-left" Classe="size-5" />
+                </button>
+                <button type="button" data-galeria-proxima aria-label="Próxima foto"
+                        class="absolute top-1/2 right-3 hidden size-11 -translate-y-1/2 place-items-center rounded-full bg-white/90 text-navy-900 shadow sm:grid">
+                    <Icone Nome="chevron-right" Classe="size-5" />
+                </button>
+            }
+
+            <div class="pointer-events-none absolute right-3 bottom-3 flex items-center gap-2 rounded-full bg-navy-950/70 px-3 py-1.5 text-xs font-medium text-white">
+                <Icone Nome="expand" Classe="size-3.5" />
+                <span data-galeria-contador>1 / @Fotos.Count</span>
+            </div>
+        </div>
+
+        @if (Fotos.Count > 1)
+        {
+            <div class="no-scrollbar mt-3 hidden gap-2 overflow-x-auto sm:flex">
+                @for (var i = 0; i < Fotos.Count; i++)
+                {
+                    <button type="button" data-galeria-miniatura aria-label="Ver foto @(i + 1)"
+                            class="relative aspect-[4/3] w-24 shrink-0 overflow-hidden rounded-xl ring-2 transition hover:opacity-100 @(i == 0 ? "ring-gold-400" : "opacity-70 ring-transparent")">
+                        <img src="@Fotos[i].Url" alt="" loading="lazy" decoding="async" class="absolute inset-0 size-full object-cover" />
+                    </button>
+                }
+            </div>
+        }
+    </div>
+
+    <div id="galeria-tela-cheia" class="fixed inset-0 z-[60] flex flex-col bg-navy-950" role="dialog" aria-modal="true" aria-label="Fotos de @Titulo" hidden>
+        <div class="flex items-center justify-between px-4 py-3 text-white">
+            <span class="text-sm" data-galeria-contador>1 / @Fotos.Count</span>
+            <button type="button" data-galeria-fechar class="grid size-11 place-items-center rounded-full hover:bg-white/10" aria-label="Fechar">
+                <Icone Nome="x" Classe="size-6" />
+            </button>
+        </div>
+        <div data-galeria-faixa class="no-scrollbar flex flex-1 snap-x snap-mandatory overflow-x-auto">
+            @for (var i = 0; i < Fotos.Count; i++)
+            {
+                <div class="relative h-full w-full shrink-0 snap-center">
+                    <img src="@Fotos[i].Url" alt="@Titulo — foto @(i + 1)" loading="lazy" decoding="async" class="absolute inset-0 size-full object-contain" />
+                </div>
+            }
+        </div>
+        @if (Fotos.Count > 1)
+        {
+            <div class="hidden justify-center gap-3 py-4 sm:flex">
+                <button type="button" data-galeria-anterior class="grid size-12 place-items-center rounded-full bg-white/10 text-white hover:bg-white/20" aria-label="Foto anterior">
+                    <Icone Nome="chevron-left" Classe="size-6" />
+                </button>
+                <button type="button" data-galeria-proxima class="grid size-12 place-items-center rounded-full bg-white/10 text-white hover:bg-white/20" aria-label="Próxima foto">
+                    <Icone Nome="chevron-right" Classe="size-6" />
+                </button>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<FotoDoSiteResponse> Fotos { get; set; } = [];
+    [Parameter, EditorRequired] public string Titulo { get; set; } = "";
+}

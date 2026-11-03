@@ -1,0 +1,48 @@
+@inject NavigationManager Navegacao
+
+<header class="sticky top-0 z-30 border-b border-navy-100/70 bg-cream/90 backdrop-blur supports-[backdrop-filter]:bg-cream/75">
+    <div class="container-site flex h-16 items-center justify-between gap-4 lg:h-20">
+        <Logo />
+
+        <nav class="hidden items-center gap-1 lg:flex" aria-label="Menu principal">
+            @foreach (var (href, rotulo) in Itens)
+            {
+                <a href="@href" class="rounded-full px-3.5 py-2 text-sm transition-colors @(Ativo(href) ? "bg-navy-100 font-medium text-navy-900" : "text-navy-700 hover:text-navy-900")"
+                   aria-current="@(Ativo(href) ? "page" : null)">@rotulo</a>
+            }
+        </nav>
+
+        <div class="flex items-center gap-2">
+            <BotaoWhatsapp Local="cabecalho" Classe="btn-whatsapp hidden min-h-11 px-5 text-sm sm:inline-flex">Falar com a Bruna</BotaoWhatsapp>
+            <button type="button" class="grid size-11 place-items-center rounded-full text-navy-800 hover:bg-navy-100 lg:hidden"
+                    aria-label="Abrir menu" aria-expanded="false" aria-controls="menu-celular" data-menu-botao>
+                <span data-icone="abrir"><Icone Nome="menu" Classe="size-6" /></span>
+                <span data-icone="fechar" hidden><Icone Nome="x" Classe="size-6" /></span>
+            </button>
+        </div>
+    </div>
+</header>
+
+@* Fora do <header>: o backdrop-blur dele prenderia o painel "fixed" dentro dos 64 px do cabeçalho *@
+<div id="menu-celular" class="fixed inset-x-0 top-16 bottom-0 z-30 overflow-y-auto bg-cream lg:hidden" hidden>
+    <nav class="container-site flex flex-col gap-1 py-6" aria-label="Menu principal">
+        @foreach (var (href, rotulo) in Itens)
+        {
+            <a href="@href" class="rounded-2xl px-4 py-4 text-lg @(Ativo(href) ? "bg-navy-100 font-medium" : "text-navy-800")">@rotulo</a>
+        }
+        <BotaoWhatsapp Local="menu_mobile" Classe="btn-whatsapp mt-6 w-full">Falar com a Bruna</BotaoWhatsapp>
+    </nav>
+</div>
+
+@code {
+    private static readonly (string Href, string Rotulo)[] Itens =
+    [
+        ("/imoveis", "Comprar"),
+        ("/aluguel", "Alugar"),
+        ("/minha-casa-minha-vida", "Minha Casa Minha Vida"),
+        ("/sobre", "Sobre"),
+        ("/contato", "Contato"),
+    ];
+
+    private bool Ativo(string href) => ("/" + Navegacao.ToBaseRelativePath(Navegacao.Uri)).StartsWith(href, StringComparison.OrdinalIgnoreCase);
+}

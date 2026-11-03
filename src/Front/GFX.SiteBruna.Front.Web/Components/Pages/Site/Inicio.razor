@@ -1,0 +1,167 @@
+@page "/"
+@inject SiteApi Api
+@inject DadosDoSite Dados
+
+<Metadados />
+
+@if (Home is not null)
+{
+    @* 1. Abertura *@
+    <section class="relative overflow-hidden">
+        <div class="pointer-events-none absolute inset-y-0 right-0 hidden w-[42%] rounded-bl-[4rem] bg-navy-800 lg:block" aria-hidden="true"></div>
+        <div class="container-site relative grid items-center gap-8 pt-8 pb-10 lg:grid-cols-[1.1fr_0.9fr] lg:gap-12 lg:pt-16 lg:pb-20">
+            <div>
+                <p class="eyebrow">Corretora de imóveis em @Configuracoes.Cidade</p>
+                <h1 class="mt-3 text-[2rem] leading-[1.15] font-semibold text-balance text-navy-900 sm:text-5xl">@Home.HeroTitulo</h1>
+                <p class="mt-5 max-w-xl text-base leading-relaxed text-navy-600 sm:text-lg">@Home.HeroSubtitulo</p>
+                <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+                    <a href="/imoveis" class="btn-primary">Ver imóveis <Icone Nome="arrow-right" Classe="size-4" /></a>
+                    <BotaoWhatsapp Local="home_hero" Classe="btn-whatsapp">Falar com a Bruna</BotaoWhatsapp>
+                </div>
+                <ul class="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-navy-600">
+                    @foreach (var servico in Home.Servicos)
+                    {
+                        <li class="inline-flex items-center gap-1.5"><Icone Nome="check" Classe="size-4 text-gold-500" /> @servico</li>
+                    }
+                </ul>
+            </div>
+            <div>
+                <div class="relative mx-auto aspect-[4/5] w-full max-w-[18rem] overflow-hidden rounded-[2rem] bg-navy-100 shadow-2xl shadow-navy-900/20 sm:max-w-sm lg:max-w-none">
+                    <FotoDaBruna Url="@Home.HeroFoto" Prioridade />
+                    @if (!string.IsNullOrEmpty(Configuracoes.Creci))
+                    {
+                        <span class="absolute bottom-4 left-4 rounded-full bg-white/95 px-4 py-2 text-xs font-semibold text-navy-800 shadow">@Configuracoes.Creci</span>
+                    }
+                </div>
+            </div>
+        </div>
+    </section>
+
+    @* 2. Busca rápida *@
+    <section class="container-site relative z-10 -mt-2 lg:-mt-10" aria-label="Busca rápida">
+        <BuscaRapida Bairros="Bairros" />
+    </section>
+
+    @* 3. Imóveis em destaque *@
+    @if (Destaques.Count > 0)
+    {
+        <section class="container-site mt-20" aria-labelledby="destaques">
+            <div class="flex items-end justify-between gap-4">
+                <div>
+                    <p class="eyebrow">Selecionados por mim</p>
+                    <h2 id="destaques" class="section-title mt-2">Imóveis em destaque</h2>
+                </div>
+                <a href="/imoveis" class="hidden text-sm font-medium text-navy-700 underline-offset-4 hover:underline sm:block">Ver todos os imóveis</a>
+            </div>
+            <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                @for (var i = 0; i < Destaques.Count; i++)
+                {
+                    <CartaoDeImovel Imovel="Destaques[i]" Prioridade="i < 2" />
+                }
+            </div>
+            <a href="/imoveis" class="btn-outline mt-6 w-full sm:hidden">Ver todos os imóveis</a>
+        </section>
+    }
+
+    @* 4. Como funciona *@
+    <section class="container-site mt-20" aria-labelledby="como-funciona">
+        <CabecalhoDeSecao Chamada="Passo a passo" Titulo="@Home.PassosTitulo" Texto="@Home.PassosTexto" Id="como-funciona" />
+        <div class="mt-8"><Passos Lista="Home.Passos" /></div>
+    </section>
+
+    @* 5. Quem é a Bruna *@
+    <section class="container-site mt-20" aria-labelledby="quem-e">
+        <div class="grid items-center gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:gap-14">
+            <div class="relative mx-auto aspect-square w-full max-w-sm overflow-hidden rounded-[2rem] bg-navy-100">
+                <FotoDaBruna Url="@(string.IsNullOrEmpty(Home.BioFoto) ? Home.HeroFoto : Home.BioFoto)" />
+            </div>
+            <div>
+                <p class="eyebrow">Quem é a Bruna</p>
+                <h2 id="quem-e" class="section-title mt-2">@Home.BioTitulo</h2>
+                <Paragrafos Texto="@Home.BioTexto" Classe="mt-4 space-y-4 text-lg leading-relaxed text-navy-700" />
+                <a href="/sobre" class="btn-outline mt-6">Conheça minha história <Icone Nome="arrow-right" Classe="size-4" /></a>
+            </div>
+        </div>
+    </section>
+
+    @* 6. Minha Casa Minha Vida *@
+    <section class="container-site mt-20" aria-labelledby="mcmv">
+        <div class="grid gap-8 overflow-hidden rounded-[2rem] bg-gold-50 p-6 ring-1 ring-gold-200 sm:p-10 lg:grid-cols-[1.3fr_1fr] lg:items-center">
+            <div>
+                <p class="eyebrow">Minha Casa Minha Vida</p>
+                <h2 id="mcmv" class="section-title mt-2">@Home.McmvTitulo</h2>
+                <Paragrafos Texto="@Home.McmvTexto" Classe="mt-4 space-y-3 leading-relaxed text-navy-700" />
+                <a href="/minha-casa-minha-vida" class="btn-primary mt-6">Entender como funciona <Icone Nome="arrow-right" Classe="size-4" /></a>
+            </div>
+            <ul class="grid gap-3">
+                @foreach (var item in new[] { "Entrada parcelada com a construtora", "Uso do FGTS na compra", "Simulação gratuita e sem compromisso" })
+                {
+                    <li class="flex items-center gap-3 rounded-2xl bg-white px-5 py-4 text-[15px] font-medium text-navy-800 shadow-sm">
+                        <span class="grid size-8 shrink-0 place-items-center rounded-full bg-gold-400 text-navy-950"><Icone Nome="check" Classe="size-4" /></span>
+                        @item
+                    </li>
+                }
+            </ul>
+        </div>
+    </section>
+
+    @* 7. Depoimentos *@
+    @if (DepoimentosDaHome.Count > 0)
+    {
+        <section class="container-site mt-20" aria-labelledby="depoimentos">
+            <CabecalhoDeSecao Chamada="Depoimentos" Titulo="Quem já pegou a chave" Id="depoimentos" />
+            <div class="mt-8"><Depoimentos Lista="DepoimentosDaHome" /></div>
+        </section>
+    }
+
+    @* 8. Imóveis para alugar *@
+    @if (Alugueis.Count > 0)
+    {
+        <section class="mt-20" aria-labelledby="aluguel">
+            <div class="container-site flex items-end justify-between gap-4">
+                <div>
+                    <p class="eyebrow">Aluguel</p>
+                    <h2 id="aluguel" class="section-title mt-2">Imóveis para alugar</h2>
+                </div>
+                <a href="/aluguel" class="text-sm font-medium text-navy-700 underline-offset-4 hover:underline">Ver todos</a>
+            </div>
+            <div class="container-site">
+                <div class="no-scrollbar -mx-4 mt-8 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 sm:-mx-6 sm:px-6">
+                    @foreach (var imovel in Alugueis)
+                    {
+                        <div class="w-[80%] shrink-0 snap-start sm:w-[45%] lg:w-[31%]"><CartaoDeImovel Imovel="imovel" /></div>
+                    }
+                </div>
+            </div>
+        </section>
+    }
+
+    @* 9. Chamada final *@
+    <ChamadaFinal Titulo="@Home.CtaTitulo" Texto="@Home.CtaTexto" Local="home_cta_final" />
+}
+
+@code {
+    private ConteudoHome? Home { get; set; }
+    private ConfiguracoesResponse Configuracoes { get; set; } = ConfiguracoesResponse.Padrao();
+    private IReadOnlyList<BairroResponse> Bairros { get; set; } = [];
+    private IReadOnlyList<CartaoDeImovelResponse> Destaques { get; set; } = [];
+    private IReadOnlyList<CartaoDeImovelResponse> Alugueis { get; set; } = [];
+    private IReadOnlyList<DepoimentoResponse> DepoimentosDaHome { get; set; } = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var paginas = Dados.Paginas();
+        var configuracoes = Dados.Configuracoes();
+        var bairros = Dados.Bairros();
+        var destaques = DadosDoSite.Exigir(Api.Destaques());
+        var alugueis = DadosDoSite.Exigir(Api.AlugueisRecentes());
+        var depoimentos = DadosDoSite.Exigir(Api.Depoimentos(soDaHome: true));
+
+        Configuracoes = await configuracoes;
+        Bairros = await bairros;
+        Destaques = await destaques;
+        Alugueis = await alugueis;
+        DepoimentosDaHome = await depoimentos;
+        Home = (await paginas).Home;
+    }
+}

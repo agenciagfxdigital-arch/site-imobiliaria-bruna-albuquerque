@@ -1,0 +1,26 @@
+@* Campo de texto do editor de páginas (uma linha ou várias). *@
+<div>
+    <label class="label" for="@_id">@Rotulo</label>
+    @if (Linhas > 1)
+    {
+        <textarea id="@_id" class="field" rows="@Linhas" value="@Valor" @onchange="e => ValorChanged.InvokeAsync(e.Value?.ToString() ?? string.Empty)"></textarea>
+    }
+    else
+    {
+        <input id="@_id" class="field" value="@Valor" @onchange="e => ValorChanged.InvokeAsync(e.Value?.ToString() ?? string.Empty)" />
+    }
+    @if (!string.IsNullOrEmpty(Dica))
+    {
+        <p class="mt-1 text-xs text-navy-500">@Dica</p>
+    }
+</div>
+
+@code {
+    private readonly string _id = $"campo-{Guid.NewGuid():N}";
+
+    [Parameter, EditorRequired] public string Rotulo { get; set; } = "";
+    [Parameter] public string Valor { get; set; } = "";
+    [Parameter] public EventCallback<string> ValorChanged { get; set; }
+    [Parameter] public int Linhas { get; set; } = 1;
+    [Parameter] public string? Dica { get; set; }
+}

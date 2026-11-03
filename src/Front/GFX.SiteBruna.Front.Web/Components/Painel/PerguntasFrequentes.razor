@@ -1,0 +1,85 @@
+@inject ConteudoApi Conteudo
+@inject IJSRuntime Js
+
+<Mensagem Erro="@Erro" Sucesso="@Aviso" />
+<ul class="space-y-3">
+    @for (var i = 0; i < Lista.Count; i++)
+    {
+        var indice = i;
+        var f = Lista[indice];
+        <li class="card space-y-3 p-4">
+            <div class="flex items-center justify-between gap-2">
+                <span class="text-sm font-medium text-navy-700">Pergunta @(indice + 1)</span>
+                <div class="flex gap-1">
+                    <button type="button" class="grid size-9 place-items-center rounded-full hover:bg-navy-50 disabled:opacity-30" disabled="@(Ocupado || indice == 0 || f.Id is null)" aria-label="Subir" @onclick="() => Mover(indice, -1)"><Icone Nome="arrow-up" Classe="size-4" /></button>
+                    <button type="button" class="grid size-9 place-items-center rounded-full hover:bg-navy-50 disabled:opacity-30" disabled="@(Ocupado || indice == Lista.Count - 1 || Lista[indice + 1].Id is null || f.Id is null)" aria-label="Descer" @onclick="() => Mover(indice, 1)"><Icone Nome="arrow-down" Classe="size-4" /></button>
+                    <button type="button" class="grid size-9 place-items-center rounded-full text-rose-700 hover:bg-rose-50" disabled="@Ocupado" aria-label="Excluir" @onclick="() => Excluir(f)"><Icone Nome="trash" Classe="size-4" /></button>
+                </div>
+            </div>
+            <input class="field" placeholder="Pergunta" @bind="f.Pergunta" />
+            <textarea class="field min-h-24" placeholder="Resposta" @bind="f.Resposta"></textarea>
+            <button type="button" class="btn-outline min-h-10 px-4 text-sm" disabled="@Ocupado" @onclick="() => Salvar(f, indice)"><Icone Nome="save" Classe="size-4" /> Salvar pergunta</button>
+        </li>
+    }
+</ul>
+<button type="button" class="btn-primary min-h-11 px-4 text-sm" @onclick="() => Lista.Add(new Item())"><Icone Nome="plus" Classe="size-4" /> Nova pergunta</button>
+
+@code {
+    private sealed class Item
+    {
+        public Guid? Id { get; set; }
+        public string Pergunta { get; set; } = "";
+        public string Resposta { get; set; } = "";
+    }
+
+    private List<Item> Lista { get; set; } = [];
+    private bool Ocupado { get; set; }
+    private string? Erro { get; set; }
+    private string? Aviso { get; set; }
+
+    protected override async Task OnInitializedAsync() => await Carregar();
+
+    private async Task Carregar()
+    {
+        var resposta = await Conteudo.Faqs();
+        if (resposta.Sucesso) Lista = [.. resposta.Dados!.OrderBy(f => f.Ordem).Select(f => new Item { Id = f.Id, Pergunta = f.Pergunta, Resposta = f.Resposta })];
+        else Erro = string.Join(" ", resposta.Mensagens);
+    }
+
+    private async Task Salvar(Item f, int indice)
+    {
+        (Erro, Aviso, Ocupado) = (null, null, true);
+        var resposta = await Conteudo.SalvarFaq(new SalvarFaqRequest(f.Id, f.Pergunta, f.Resposta, indice + 1));
+        Ocupado = false;
+        if (resposta is { Sucesso: true, Dados: { } salva })
+        {
+            f.Id = salva.Id;
+            Aviso = "Pergunta salva.";
+        }
+        else Erro = string.Join(" ", resposta.Mensagens);
+    }
+
+    private async Task Mover(int indice, int direcao)
+    {
+        (Lista[indice], Lista[indice + direcao]) = (Lista[indice + direcao], Lista[indice]);
+        (Erro, Aviso, Ocupado) = (null, null, true);
+        var resposta = await Conteudo.ReordenarFaqs([.. Lista.Where(f => f.Id is not null).Select(f => f.Id!.Value)]);
+        Ocupado = false;
+        if (!resposta.Sucesso) Erro = string.Join(" ", resposta.Mensagens);
+    }
+
+    private async Task Excluir(Item f)
+    {
+        if (f.Id is not { } id)
+        {
+            Lista.Remove(f);
+            return;
+        }
+        if (!await Js.InvokeAsync<bool>("confirm", "Excluir esta pergunta?")) return;
+        (Erro, Aviso, Ocupado) = (null, null, true);
+        var resposta = await Conteudo.ExcluirFaq(id);
+        Ocupado = false;
+        if (resposta.Sucesso) Lista.Remove(f);
+        else Erro = string.Join(" ", resposta.Mensagens);
+    }
+}

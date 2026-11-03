@@ -1,0 +1,50 @@
+@inject IOptions<OpcoesDoSite> Opcoes
+@* Título, descrição, endereço canônico e cartão de compartilhamento (WhatsApp, Facebook, Google). *@
+<PageTitle>@TituloDaAba</PageTitle>
+<HeadContent>
+    <meta name="description" content="@Descricao" />
+    @if (Caminho is not null)
+    {
+        <link rel="canonical" href="@Absoluto(Caminho)" />
+    }
+    @if (SemIndice)
+    {
+        <meta name="robots" content="noindex" />
+    }
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="pt_BR" />
+    <meta property="og:site_name" content="Bruna Albuquerque" />
+    <meta property="og:title" content="@TituloDaAba" />
+    <meta property="og:description" content="@Descricao" />
+    @if (Caminho is not null)
+    {
+        <meta property="og:url" content="@Absoluto(Caminho)" />
+    }
+    <meta property="og:image" content="@Absoluto(Imagem ?? "/compartilhar.png")" />
+    @if (Imagem is null)
+    {
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+    }
+    <meta property="og:image:alt" content="@(ImagemAlt ?? "Bruna Albuquerque – Corretora de imóveis em Videira/SC")" />
+    <meta name="twitter:card" content="summary_large_image" />
+</HeadContent>
+
+@code {
+    public const string TituloPadrao = "Bruna Albuquerque | Corretora de imóveis em Videira/SC";
+    public const string DescricaoPadrao =
+        "Corretora de imóveis em Videira/SC. Compra, venda, locação, imóveis na planta e Minha Casa Minha Vida, com orientação em cada etapa, do primeiro contato até a chave.";
+
+    /// <summary>Parte do título; ganha " | Bruna Albuquerque". Vazio = título da página inicial.</summary>
+    [Parameter] public string? Titulo { get; set; }
+    [Parameter] public string Descricao { get; set; } = DescricaoPadrao;
+    /// <summary>Caminho canônico ("/imoveis").</summary>
+    [Parameter] public string? Caminho { get; set; }
+    [Parameter] public string? Imagem { get; set; }
+    [Parameter] public string? ImagemAlt { get; set; }
+    [Parameter] public bool SemIndice { get; set; }
+
+    private string TituloDaAba => string.IsNullOrEmpty(Titulo) ? TituloPadrao : $"{Titulo} | Bruna Albuquerque";
+
+    private string Absoluto(string url) => url.StartsWith("http", StringComparison.OrdinalIgnoreCase) ? url : $"{Opcoes.Value.UrlBase}{url}";
+}

@@ -1,21 +1,49 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <base href="/" />
-    <ResourcePreloader />
-    <link rel="stylesheet" href="@Assets["app.css"]" />
-    <link rel="stylesheet" href="@Assets["GFX.SiteBruna.Front.Web.styles.css"]" />
-    <ImportMap />
-    <HeadOutlet />
+    <meta name="theme-color" content="#1f3052" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <link rel="preload" href="fontes/poppins-400-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="fontes/poppins-600-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="@Assets["css/site.css"]" />
+    @if (Interativa)
+    {
+        <link rel="stylesheet" href="@Assets["GFX.SiteBruna.Front.Web.styles.css"]" />
+        <ResourcePreloader />
+        <ImportMap />
+    }
+    <HeadOutlet @rendermode="ModoDaPagina" />
 </head>
 
-<body>
-    <Routes />
-    <ReconnectModal />
-    <script src="@Assets["_framework/blazor.web.js"]"></script>
+<body class="min-h-dvh font-sans">
+    <Routes @rendermode="ModoDaPagina" IpDoVisitante="@HttpContext?.Connection.RemoteIpAddress?.ToString()" />
+    @if (Interativa)
+    {
+        <ReconnectModal />
+        <script src="@Assets["_framework/blazor.web.js"]"></script>
+    }
+    else
+    {
+        <script src="@Assets["js/site.js"]" defer></script>
+    }
 </body>
 
 </html>
+
+@code {
+    [CascadingParameter] private HttpContext? HttpContext { get; set; }
+
+    /// <summary>
+    /// Páginas do site são estáticas ([ExcludeFromInteractiveRouting] no _Imports de Pages/Site) e usam só o site.js;
+    /// o painel roda no circuito do Blazor, sem pré-renderização (a sessão só existe com o circuito ligado).
+    /// </summary>
+    private IComponentRenderMode? ModoDaPagina =>
+        HttpContext?.AcceptsInteractiveRouting() == true ? new InteractiveServerRenderMode(prerender: false) : null;
+
+    private bool Interativa => ModoDaPagina is not null;
+}

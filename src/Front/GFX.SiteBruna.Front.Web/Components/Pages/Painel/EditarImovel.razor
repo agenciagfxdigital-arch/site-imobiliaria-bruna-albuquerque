@@ -1,0 +1,323 @@
+@page "/admin/imoveis/novo"
+@page "/admin/imoveis/{Id:guid}"
+@inject ImovelApi Imoveis
+@inject ConteudoApi Conteudo
+@inject NavigationManager Navegacao
+@inject IJSRuntime Js
+
+<PageTitle>@(Novo ? "Novo imóvel" : $"Imóvel {Codigo}") | Painel</PageTitle>
+
+<div class="mx-auto max-w-4xl space-y-4">
+    <div class="flex flex-wrap items-center justify-between gap-2">
+        <div>
+            <a href="/admin/imoveis" class="text-sm text-navy-600 hover:underline">← Imóveis</a>
+            <h1 class="mt-1 text-2xl font-semibold">@(Novo ? "Novo imóvel" : $"Imóvel {Codigo}")</h1>
+        </div>
+        @if (!Novo && Detalhe is not null)
+        {
+            <p class="text-xs text-navy-500">
+                @(Detalhe.Origem == OrigemImovel.Whatsapp ? "Cadastrado pelo WhatsApp · " : "")Atualizado em @Formato.Data(Detalhe.AtualizadoEm, comHora: true)
+                @(Detalhe.AtualizadoPor is { } por ? $" por {por}" : "")
+            </p>
+        }
+    </div>
+
+    @if (D is null)
+    {
+        <Mensagem Erro="@Erro" />
+        @if (Erro is null)
+        {
+            <p class="text-sm text-navy-500">Carregando…</p>
+        }
+    }
+    else
+    {
+        var venda = D.Finalidade == Finalidade.Venda;
+        <form class="space-y-4 pb-24" @onsubmit="() => Salvar(StatusImovel.Ativo, Depois.Lista)">
+            <Secao Titulo="O básico">
+                <div class="grid grid-cols-2 gap-2">
+                    @foreach (var f in Enum.GetValues<Finalidade>())
+                    {
+                        <button type="button" @onclick="() => D.Finalidade = f"
+                                class="min-h-12 rounded-xl border text-[15px] font-medium @(D.Finalidade == f ? "border-navy-800 bg-navy-800 text-white" : "border-navy-200 bg-white")">@Rotulos.Finalidade(f)</button>
+                    }
+                </div>
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <div>
+                        <label class="label" for="f-tipo">Tipo</label>
+                        <select id="f-tipo" class="field" @bind="D.Tipo">
+                            @foreach (var tipo in Rotulos.Tipos)
+                            {
+                                <option value="@tipo">@Rotulos.Tipo(tipo)</option>
+                            }
+                        </select>
+                    </div>
+                    <div>
+                        <label class="label" for="f-bairro">Bairro</label>
+                        <select id="f-bairro" class="field" value="@(D.BairroId?.ToString() ?? "")" @onchange="e => D.BairroId = Guid.TryParse(e.Value?.ToString(), out var b) ? b : null">
+                            <option value="">Selecione</option>
+                            @foreach (var b in Bairros)
+                            {
+                                <option value="@b.Id">@b.Nome</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="label" for="f-titulo">Título do anúncio</label>
+                    <input id="f-titulo" class="field" required maxlength="140" placeholder="Ex.: Apartamento 2 quartos com sacada no Centro" @bind="D.Titulo" />
+                </div>
+                @if (venda)
+                {
+                    <CampoDeValor Id="f-preco" Rotulo="Preço de venda" @bind-Valor="D.Preco" />
+                }
+                else
+                {
+                    <CampoDeValor Id="f-aluguel" Rotulo="Valor do aluguel (por mês)" @bind-Valor="D.Aluguel" />
+                }
+                <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    <CampoDeContagem Id="f-quartos" Rotulo="Quartos" @bind-Valor="D.Quartos" />
+                    <CampoDeContagem Id="f-banheiros" Rotulo="Banheiros" @bind-Valor="D.Banheiros" />
+                    <CampoDeContagem Id="f-vagas" Rotulo="Vagas" @bind-Valor="D.Vagas" />
+                    <div>
+                        <label class="label" for="f-area">Área (m²)</label>
+                        <input id="f-area" class="field" inputmode="decimal" value="@Numero.Escrever(D.Area)" @onchange="e => D.Area = Numero.Ler(e.Value?.ToString())" />
+                    </div>
+                </div>
+                <div>
+                    <label class="label" for="f-proprietario">Nome do proprietário (não aparece no site)</label>
+                    <input id="f-proprietario" class="field" maxlength="120" autocomplete="off" @bind="D.ProprietarioNome" />
+                </div>
+            </Secao>
+
+            @if (venda)
+            {
+                <Secao Titulo="Condições de venda">
+                    <div class="grid grid-cols-2 gap-2">
+                        @foreach (var s in Enum.GetValues<Situacao>())
+                        {
+                            <button type="button" @onclick="() => D.Situacao = s"
+                                    class="min-h-12 rounded-xl border text-[15px] @(D.Situacao == s ? "border-navy-800 bg-navy-800 text-white" : "border-navy-200 bg-white")">@Rotulos.Situacao(s)</button>
+                        }
+                    </div>
+                    <div class="grid gap-2 sm:grid-cols-3">
+                        <Marcar Rotulo="Minha Casa Minha Vida" @bind-Valor="D.Mcmv" />
+                        <Marcar Rotulo="Entrada parcelada" @bind-Valor="D.EntradaParcelada" />
+                        <Marcar Rotulo="Aceita FGTS" @bind-Valor="D.AceitaFgts" />
+                    </div>
+                    @if (D.Situacao == Situacao.NaPlanta)
+                    {
+                        <div>
+                            <label class="label" for="f-prev">Previsão de entrega</label>
+                            <input id="f-prev" class="field" placeholder="Ex.: Dezembro de 2027" @bind="D.PrevisaoEntrega" />
+                        </div>
+                    }
+                </Secao>
+            }
+            else
+            {
+                <Secao Titulo="Condições do aluguel">
+                    <div class="grid gap-2 sm:grid-cols-2">
+                        <Marcar Rotulo="Mobiliado" @bind-Valor="D.Mobiliado" />
+                        <Marcar Rotulo="Aceita pet" @bind-Valor="D.AceitaPet" />
+                    </div>
+                    <div>
+                        <span class="label">Garantias aceitas</span>
+                        <Opcoes Lista="Rotulos.Garantias" Valor="D.Garantias" />
+                    </div>
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <CampoDeValor Id="f-cond" Rotulo="Condomínio (por mês)" @bind-Valor="D.Condominio" />
+                        <CampoDeValor Id="f-iptu" Rotulo="IPTU (por mês)" @bind-Valor="D.Iptu" />
+                    </div>
+                </Secao>
+            }
+
+            <Secao Titulo="Fotos">
+                @if (Id is { } id)
+                {
+                    <FotosDoImovel ImovelId="id" Fotos="Fotos" />
+                }
+                else
+                {
+                    <p class="text-sm text-navy-600">Salve o rascunho para poder enviar as fotos.</p>
+                }
+            </Secao>
+
+            <Secao Titulo="Descrição">
+                <textarea class="field min-h-40" maxlength="10000" @bind="D.Descricao"
+                          placeholder="Escreva do seu jeito: o que o imóvel tem de bom, para quem ele é ideal, o que tem por perto…"></textarea>
+                <p class="text-xs text-navy-500">Deixe uma linha em branco entre os parágrafos.</p>
+            </Secao>
+
+            <Secao Titulo="Diferenciais">
+                <Opcoes Lista="Rotulos.Diferenciais" Valor="D.Diferenciais" />
+                <div class="flex gap-2">
+                    <input class="field" placeholder="Outro diferencial" @bind="OutroDiferencial" @onkeydown="TeclaNoDiferencial" @onkeydown:preventDefault="false" />
+                    <button type="button" class="btn-outline min-h-12 px-4 text-sm" @onclick="AdicionarDiferencial">Adicionar</button>
+                </div>
+            </Secao>
+
+            <details class="card overflow-hidden" open="@(!Novo && TemDetalhes)">
+                <summary class="flex cursor-pointer list-none items-center justify-between p-4 sm:p-6 [&::-webkit-details-marker]:hidden">
+                    <span class="font-semibold">Mais detalhes</span>
+                    <span class="text-sm text-navy-500">opcional</span>
+                </summary>
+                <div class="space-y-4 border-t border-navy-100 p-4 sm:p-6">
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <div>
+                            <label class="label" for="f-codigo">Código do imóvel</label>
+                            <input id="f-codigo" class="field uppercase" maxlength="20" placeholder="@(Novo ? "Gerado automaticamente" : "")"
+                                   value="@D.Codigo" @onchange="e => D.Codigo = new string((e.Value?.ToString() ?? string.Empty).Where(char.IsLetterOrDigit).ToArray()).ToUpperInvariant()" />
+                        </div>
+                        <CampoDeContagem Id="f-suites" Rotulo="Suítes" @bind-Valor="D.Suites" />
+                        <div>
+                            <label class="label" for="f-andar">Andar</label>
+                            <input id="f-andar" class="field" placeholder="Ex.: 3º andar" @bind="D.Andar" />
+                        </div>
+                        @if (venda)
+                        {
+                            <CampoDeValor Id="f-entrada" Rotulo="Entrada a partir de" Dica="Aparece no card e na página do imóvel" @bind-Valor="D.EntradaAPartir" />
+                            <CampoDeValor Id="f-cond-v" Rotulo="Condomínio (por mês)" @bind-Valor="D.Condominio" />
+                            <CampoDeValor Id="f-iptu-v" Rotulo="IPTU (por mês)" @bind-Valor="D.Iptu" />
+                        }
+                    </div>
+                    <div>
+                        <label class="label" for="f-video">Link do vídeo (Reels ou YouTube)</label>
+                        <input id="f-video" class="field" type="url" placeholder="https://www.instagram.com/reel/..." @bind="D.VideoUrl" />
+                    </div>
+                    <div>
+                        <label class="label" for="f-end">Endereço (não aparece no site)</label>
+                        <input id="f-end" class="field" @bind="D.Endereco" />
+                    </div>
+                    <Marcar Rotulo="Mostrar mapa do bairro na página" Dica="Mostra só a região aproximada, nunca o endereço" @bind-Valor="D.MostrarMapa" />
+                    <Marcar Rotulo="Destacar na página inicial" @bind-Valor="D.Destaque" />
+                    @if (!Novo)
+                    {
+                        <div>
+                            <label class="label" for="f-status">Status</label>
+                            <select id="f-status" class="field" @bind="D.Status">
+                                @foreach (var s in Enum.GetValues<StatusImovel>())
+                                {
+                                    <option value="@s">@Rotulos.Status(s)</option>
+                                }
+                            </select>
+                            <p class="mt-1 text-xs text-navy-500">Para salvar com este status, use "Salvar" abaixo.</p>
+                        </div>
+                    }
+                </div>
+            </details>
+
+            <Mensagem Erro="@Erro" />
+
+            @* Barra de ações fixa (fácil de alcançar no celular) *@
+            <div class="fixed inset-x-0 bottom-[60px] z-20 border-t border-navy-100 bg-white/95 p-3 backdrop-blur lg:bottom-0 lg:left-64">
+                <div class="mx-auto flex max-w-4xl gap-2">
+                    <button type="button" disabled="@Ocupado" @onclick="() => Salvar(D.Status, Depois.Ficar)" class="btn-outline min-h-12 flex-1 px-3 text-sm">
+                        <Icone Nome="save" Classe="size-4" /> @(D.Status == StatusImovel.Rascunho ? "Salvar rascunho" : "Salvar")
+                    </button>
+                    <button type="button" disabled="@Ocupado" @onclick="() => Salvar(D.Status, Depois.Previa)" class="btn-outline min-h-12 px-3 text-sm" aria-label="Pré-visualizar">
+                        <Icone Nome="eye" Classe="size-4" /> <span class="hidden sm:inline">Pré-visualizar</span>
+                    </button>
+                    @if (D.Status != StatusImovel.Ativo)
+                    {
+                        <button type="submit" disabled="@Ocupado" class="btn-primary min-h-12 flex-1 px-3 text-sm">
+                            <Icone Nome="@(Ocupado ? "loader-circle" : "send")" Classe="@(Ocupado ? "size-4 animate-spin" : "size-4")" /> Publicar
+                        </button>
+                    }
+                </div>
+                @if (!string.IsNullOrEmpty(Aviso) && !Ocupado)
+                {
+                    <p class="mt-1 text-center text-xs text-emerald-700" role="status">@Aviso</p>
+                }
+            </div>
+        </form>
+    }
+</div>
+
+@code {
+    private enum Depois { Ficar, Lista, Previa }
+
+    [Parameter] public Guid? Id { get; set; }
+
+    private bool Novo => Id is null;
+    private DadosDoImovel? D { get; set; }
+    private ImovelDetalheResponse? Detalhe { get; set; }
+    private List<FotoResponse> Fotos { get; set; } = [];
+    private IReadOnlyList<BairroResponse> Bairros { get; set; } = [];
+    private string Codigo { get; set; } = "";
+    private string OutroDiferencial { get; set; } = "";
+    private bool Ocupado { get; set; }
+    private string? Erro { get; set; }
+    private string? Aviso { get; set; }
+
+    private bool TemDetalhes => D is { } d && (d.Suites > 0 || d.Andar.Length > 0 || d.VideoUrl.Length > 0 || !string.IsNullOrEmpty(d.Endereco) || d.Destaque);
+
+    protected override async Task OnParametersSetAsync()
+    {
+        (Erro, Aviso) = (null, null);
+        var bairros = await Conteudo.Bairros();
+        Bairros = bairros.Dados ?? [];
+        if (Id is not { } id)
+        {
+            D = new DadosDoImovel { Quartos = 2, Banheiros = 1, Vagas = 1, Status = StatusImovel.Rascunho };
+            return;
+        }
+        var resposta = await Imoveis.Obter(id);
+        if (resposta is { Sucesso: true, Dados: { } detalhe })
+        {
+            Detalhe = detalhe;
+            D = detalhe.Dados;
+            D.ProprietarioNome ??= "";
+            D.Endereco ??= "";
+            Codigo = detalhe.Dados.Codigo ?? "";
+            Fotos = [.. detalhe.Fotos];
+        }
+        else (D, Erro) = (null, string.Join(" ", resposta.Mensagens));
+    }
+
+    private void TeclaNoDiferencial(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") AdicionarDiferencial();
+    }
+
+    private void AdicionarDiferencial()
+    {
+        var novo = OutroDiferencial.Trim();
+        if (novo.Length > 0 && !D!.Diferenciais.Contains(novo)) D.Diferenciais.Add(novo);
+        OutroDiferencial = "";
+    }
+
+    private async Task Salvar(StatusImovel status, Depois depois)
+    {
+        if (D is null) return;
+        if (status == StatusImovel.Ativo && Fotos.Count == 0 && depois == Depois.Lista
+            && !await Js.InvokeAsync<bool>("confirm", "O imóvel está sem fotos. Publicar mesmo assim?"))
+            return;
+
+        (Erro, Aviso, Ocupado) = (null, null, true);
+        D.Status = status;
+        D.Codigo = string.IsNullOrWhiteSpace(D.Codigo) ? null : D.Codigo.Trim();
+        var resposta = await Imoveis.Salvar(new SalvarImovelRequest(Id, D));
+        Ocupado = false;
+        if (resposta is not { Sucesso: true, Dados: { } salvo })
+        {
+            Erro = string.Join(" ", resposta.Mensagens);
+            return;
+        }
+        D.Codigo = salvo.Codigo;
+        Codigo = salvo.Codigo;
+        switch (depois)
+        {
+            case Depois.Lista:
+                Navegacao.NavigateTo($"/admin/imoveis?salvo={salvo.Codigo}");
+                break;
+            case Depois.Previa:
+                Navegacao.NavigateTo($"/admin/imoveis/{salvo.Id}/preview");
+                break;
+            default:
+                if (Novo) Navegacao.NavigateTo($"/admin/imoveis/{salvo.Id}");
+                else Aviso = "Alterações salvas.";
+                break;
+        }
+    }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "site-bruna-estilos",
+  "private": true,
+  "description": "Gera o CSS do Front.Web (Tailwind). Só para desenvolvimento: o CSS gerado vai junto no repositório.",
+  "type": "module",
+  "scripts": {
+    "css": "node gerar-css.mjs",
+    "css:observar": "node gerar-css.mjs --observar"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.3.3",
+    "postcss": "8.5.6",
+    "tailwindcss": "4.3.3"
+  }
+}

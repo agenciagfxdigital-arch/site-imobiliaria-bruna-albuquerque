@@ -1,0 +1,13 @@
+@* Localização aproximada (só o bairro). O Google Maps só carrega quando a pessoa pede (site.js). *@
+@{ var busca = string.Join(", ", new[] { Bairro, Cidade.Replace("/", " - ") }.Where(s => !string.IsNullOrWhiteSpace(s))); }
+<button type="button" data-mapa="@busca"
+        class="flex aspect-[16/9] w-full flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-navy-200 bg-navy-50 text-navy-700 transition-colors hover:bg-navy-100">
+    <Icone Nome="map-pin" Classe="size-8 text-gold-500" />
+    <span class="font-medium">Ver região no mapa</span>
+    <span class="text-xs text-navy-500">@busca</span>
+</button>
+
+@code {
+    [Parameter] public string? Bairro { get; set; }
+    [Parameter, EditorRequired] public string Cidade { get; set; } = "";
+}

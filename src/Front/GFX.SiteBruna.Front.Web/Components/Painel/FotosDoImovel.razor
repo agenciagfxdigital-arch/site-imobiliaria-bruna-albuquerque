@@ -1,0 +1,140 @@
+@inject ImovelApi Imoveis
+@* Fotos do imóvel. Cada mudança é gravada na hora (enviar, ordem, capa, remover): não há foto "pendente" perdida. *@
+<div>
+    <div class="rounded-2xl border-2 border-dashed border-navy-200 p-3">
+        @if (Fotos.Count > 0)
+        {
+            <ul class="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+                @for (var i = 0; i < Fotos.Count; i++)
+                {
+                    var indice = i;
+                    var foto = Fotos[indice];
+                    <li class="relative aspect-[4/3] overflow-hidden rounded-xl bg-navy-100 ring-2 @(foto.Capa ? "ring-gold-400" : "ring-transparent")">
+                        <img src="@foto.Url" alt="Foto @(indice + 1)" class="h-full w-full object-cover" />
+                        <div class="absolute top-1.5 left-1.5 flex gap-1">
+                            <button type="button" disabled="@(Ocupado || indice == 0)" @onclick="() => Mover(indice, -1)" aria-label="Mover a foto @(indice + 1) para antes"
+                                    class="grid size-9 place-items-center rounded-full bg-white/90 text-navy-700 shadow disabled:opacity-40"><Icone Nome="arrow-left" Classe="size-4" /></button>
+                            <button type="button" disabled="@(Ocupado || indice == Fotos.Count - 1)" @onclick="() => Mover(indice, 1)" aria-label="Mover a foto @(indice + 1) para depois"
+                                    class="grid size-9 place-items-center rounded-full bg-white/90 text-navy-700 shadow disabled:opacity-40"><Icone Nome="arrow-right" Classe="size-4" /></button>
+                        </div>
+                        <div class="absolute top-1.5 right-1.5 flex gap-1">
+                            <button type="button" disabled="@Ocupado" @onclick="() => UsarComoCapa(indice)" title="@(foto.Capa ? "Foto de capa" : "Usar como capa")"
+                                    aria-label="@(foto.Capa ? "Foto de capa" : "Usar como capa")"
+                                    class="grid size-9 place-items-center rounded-full shadow @(foto.Capa ? "bg-gold-400 text-navy-950" : "bg-white/90 text-navy-700")"><Icone Nome="star" Classe="size-4" /></button>
+                            <button type="button" disabled="@Ocupado" @onclick="() => Remover(indice)" aria-label="Remover foto"
+                                    class="grid size-9 place-items-center rounded-full bg-white/90 text-rose-700 shadow"><Icone Nome="trash" Classe="size-4" /></button>
+                        </div>
+                        @if (foto.Capa)
+                        {
+                            <span class="absolute bottom-1.5 left-1.5 rounded-full bg-gold-400 px-2 py-0.5 text-[10px] font-semibold text-navy-950">CAPA</span>
+                        }
+                    </li>
+                }
+            </ul>
+        }
+        <label class="flex min-h-24 w-full cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl bg-navy-50 text-navy-700 hover:bg-navy-100">
+            <Icone Nome="image-plus" Classe="size-6 text-gold-500" />
+            <span class="text-sm font-medium">@(Ocupado ? Andamento : "Adicionar fotos")</span>
+            <span class="text-xs text-navy-500">Toque para escolher (pode escolher várias)</span>
+            <InputFile OnChange="Enviar" accept="image/*" multiple class="sr-only" disabled="@Ocupado" />
+        </label>
+    </div>
+    <p class="mt-2 text-xs text-navy-500">As setas mudam a ordem. A estrela escolhe a capa. As fotos são otimizadas automaticamente e gravadas na hora.</p>
+    <div class="mt-2"><Mensagem Erro="@Erro" Sucesso="@Aviso" /></div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public Guid ImovelId { get; set; }
+    [Parameter, EditorRequired] public List<FotoResponse> Fotos { get; set; } = [];
+
+    private bool Ocupado { get; set; }
+    private string Andamento { get; set; } = "";
+    private string? Erro { get; set; }
+    private string? Aviso { get; set; }
+
+    private async Task Enviar(InputFileChangeEventArgs e)
+    {
+        (Erro, Aviso, Ocupado) = (null, null, true);
+        var arquivos = e.GetMultipleFiles(60);
+        List<string> avisos = [];
+        try
+        {
+            for (var i = 0; i < arquivos.Count; i++)
+            {
+                Andamento = $"Enviando foto {i + 1} de {arquivos.Count}…";
+                StateHasChanged();
+                byte[] conteudo;
+                try
+                {
+                    conteudo = await Arquivos.Ler(arquivos[i]);
+                }
+                catch (IOException)
+                {
+                    avisos.Add($"{arquivos[i].Name}: {Arquivos.MensagemGrandeDemais}");
+                    continue;
+                }
+                var enviada = await Imoveis.EnviarFoto(ImovelId, conteudo, arquivos[i].Name);
+                if (enviada is not { Sucesso: true, Dados: { } imagem })
+                {
+                    avisos.Add($"{arquivos[i].Name}: {string.Join(" ", enviada.Mensagens)}");
+                    continue;
+                }
+                if (imagem.Aviso is { } aviso) avisos.Add($"{arquivos[i].Name}: {aviso}");
+                var desejadas = Desejadas().Append(new FotoDesejada(null, imagem.Url, imagem.CaminhoNoStorage, Fotos.Count == 0)).ToList();
+                if (!await Gravar(desejadas)) return;
+            }
+            Aviso = avisos.Count > 0 ? string.Join(" ", avisos) : "Fotos salvas.";
+        }
+        finally
+        {
+            Ocupado = false;
+        }
+    }
+
+    private Task Mover(int indice, int direcao)
+    {
+        var lista = Desejadas();
+        (lista[indice], lista[indice + direcao]) = (lista[indice + direcao], lista[indice]);
+        return Executar(lista);
+    }
+
+    private Task UsarComoCapa(int indice) =>
+        Executar([.. Desejadas().Select((f, i) => f with { Capa = i == indice })]);
+
+    private Task Remover(int indice)
+    {
+        var lista = Desejadas();
+        var tiradaEraCapa = lista[indice].Capa;
+        lista.RemoveAt(indice);
+        if (tiradaEraCapa && lista.Count > 0) lista[0] = lista[0] with { Capa = true };
+        return Executar(lista);
+    }
+
+    private List<FotoDesejada> Desejadas() => [.. Fotos.Select(f => new FotoDesejada(f.Id, f.Url, f.CaminhoNoStorage, f.Capa))];
+
+    private async Task Executar(List<FotoDesejada> lista)
+    {
+        (Erro, Aviso, Ocupado, Andamento) = (null, null, true, "Salvando…");
+        try
+        {
+            if (await Gravar(lista)) Aviso = "Fotos salvas.";
+        }
+        finally
+        {
+            Ocupado = false;
+        }
+    }
+
+    private async Task<bool> Gravar(List<FotoDesejada> lista)
+    {
+        var resposta = await Imoveis.SalvarFotos(ImovelId, lista);
+        if (resposta is { Sucesso: true, Dados: { } salvas })
+        {
+            Fotos.Clear();
+            Fotos.AddRange(salvas);
+            return true;
+        }
+        Erro = string.Join(" ", resposta.Mensagens);
+        return false;
+    }
+}

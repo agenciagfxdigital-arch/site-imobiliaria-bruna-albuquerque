@@ -1,0 +1,12 @@
+<a href="/" class="group flex items-center gap-2.5" aria-label="Bruna Albuquerque — página inicial">
+    <span class="grid size-10 place-items-center rounded-full border text-sm font-semibold tracking-wide @(Claro ? "border-gold-300 text-gold-300" : "border-gold-400 bg-navy-800 text-gold-300")">BA</span>
+    <span class="leading-tight">
+        <span class="block text-[15px] font-semibold @(Claro ? "text-white" : "text-navy-900")">Bruna Albuquerque</span>
+        <span class="block text-[11px] tracking-[0.14em] uppercase @(Claro ? "text-navy-200" : "text-gold-600")">Corretora de imóveis</span>
+    </span>
+</a>
+
+@code {
+    /// <summary>Versão para fundo escuro (rodapé).</summary>
+    [Parameter] public bool Claro { get; set; }
+}

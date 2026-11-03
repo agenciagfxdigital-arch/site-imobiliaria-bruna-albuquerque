@@ -1,0 +1,11 @@
+<div>
+    <label class="label" for="@Id">@Rotulo</label>
+    <input id="@Id" class="field" inputmode="numeric" value="@Valor" @onchange="e => ValorChanged.InvokeAsync(Numero.Contagem(e.Value?.ToString()))" />
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Id { get; set; } = "";
+    [Parameter, EditorRequired] public string Rotulo { get; set; } = "";
+    [Parameter] public int Valor { get; set; }
+    [Parameter] public EventCallback<int> ValorChanged { get; set; }
+}

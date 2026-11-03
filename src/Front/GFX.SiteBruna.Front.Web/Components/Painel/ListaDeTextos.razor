@@ -1,0 +1,22 @@
+@* Lista editável de linhas curtas (serviços, documentos). *@
+<div>
+    <span class="label">@Rotulo</span>
+    <ul class="space-y-2">
+        @for (var i = 0; i < Itens.Count; i++)
+        {
+            var indice = i;
+            <li class="flex gap-2">
+                <input class="field" value="@Itens[indice]" @onchange="e => Itens[indice] = e.Value?.ToString() ?? string.Empty" aria-label="@($"{Rotulo}: item {indice + 1}")" />
+                <button type="button" class="grid size-12 shrink-0 place-items-center rounded-xl text-rose-700 hover:bg-rose-50" aria-label="Remover item" @onclick="() => Itens.RemoveAt(indice)">
+                    <Icone Nome="trash" Classe="size-4" />
+                </button>
+            </li>
+        }
+    </ul>
+    <button type="button" class="btn-outline mt-2 min-h-10 px-4 text-sm" @onclick="() => Itens.Add(string.Empty)"><Icone Nome="plus" Classe="size-4" /> Adicionar</button>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Rotulo { get; set; } = "";
+    [Parameter, EditorRequired] public List<string> Itens { get; set; } = [];
+}

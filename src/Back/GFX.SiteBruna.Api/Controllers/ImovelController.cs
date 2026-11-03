@@ -18,6 +18,10 @@ public sealed class ImovelController(ImovelService imoveis) : ApiControllerBase
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> Obter(Guid id) => RespostaParaStatus(await imoveis.Obter(id));
 
+    /// <summary>A página como fica no site, em qualquer status.</summary>
+    [HttpGet("{id:guid}/previa")]
+    public async Task<IActionResult> Previa(Guid id) => RespostaParaStatus(await imoveis.Previa(id));
+
     /// <summary>Cria (sem id) ou atualiza.</summary>
     [HttpPost]
     public async Task<IActionResult> Salvar([FromBody] SalvarImovelRequest request) => RespostaParaStatus(await imoveis.Salvar(request));

@@ -1,0 +1,60 @@
+@inject ConteudoApi Conteudo
+@* Uma imagem do site (foto da Bruna, depoimento): envia, mostra e permite trocar ou tirar. *@
+<div>
+    <span class="label">@Rotulo</span>
+    <div class="flex items-center gap-4">
+        <div class="relative size-24 shrink-0 overflow-hidden rounded-xl bg-navy-100">
+            @if (!string.IsNullOrEmpty(Url))
+            {
+                <img src="@Url" alt="" class="absolute inset-0 size-full object-cover" />
+            }
+        </div>
+        <div class="space-y-2">
+            <label class="btn-outline min-h-11 cursor-pointer px-4 text-sm">
+                <Icone Nome="image-plus" Classe="size-4" /> @(Enviando ? "Enviando…" : string.IsNullOrEmpty(Url) ? "Escolher foto" : "Trocar foto")
+                <InputFile OnChange="Enviar" accept="image/*" class="sr-only" disabled="@Enviando" />
+            </label>
+            @if (!string.IsNullOrEmpty(Url))
+            {
+                <button type="button" class="block text-sm text-rose-700 hover:underline" @onclick="() => UrlChanged.InvokeAsync(null)">Tirar a foto</button>
+            }
+        </div>
+    </div>
+    <Mensagem Erro="@Erro" Sucesso="@Aviso" />
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Rotulo { get; set; } = "";
+    /// <summary>"site", "depoimentos" ou "entregas".</summary>
+    [Parameter, EditorRequired] public string Pasta { get; set; } = "";
+    [Parameter] public string? Url { get; set; }
+    [Parameter] public EventCallback<string?> UrlChanged { get; set; }
+
+    private bool Enviando { get; set; }
+    private string? Erro { get; set; }
+    private string? Aviso { get; set; }
+
+    private async Task Enviar(InputFileChangeEventArgs e)
+    {
+        (Erro, Aviso, Enviando) = (null, null, true);
+        try
+        {
+            var arquivo = await Arquivos.Ler(e.File);
+            var resposta = await Conteudo.EnviarImagem(Pasta, arquivo, e.File.Name);
+            if (resposta is { Sucesso: true, Dados: { } imagem })
+            {
+                Aviso = imagem.Aviso;
+                await UrlChanged.InvokeAsync(imagem.Url);
+            }
+            else Erro = string.Join(" ", resposta.Mensagens);
+        }
+        catch (IOException)
+        {
+            Erro = Arquivos.MensagemGrandeDemais;
+        }
+        finally
+        {
+            Enviando = false;
+        }
+    }
+}

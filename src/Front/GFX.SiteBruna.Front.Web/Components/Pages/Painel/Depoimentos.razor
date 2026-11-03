@@ -1,0 +1,97 @@
+@page "/admin/depoimentos"
+@inject ConteudoApi Conteudo
+@inject IJSRuntime Js
+
+<PageTitle>Depoimentos | Painel</PageTitle>
+
+<div class="mx-auto max-w-3xl space-y-4">
+    <div>
+        <h1 class="text-2xl font-semibold">Depoimentos</h1>
+        <p class="mt-1 text-sm text-navy-600">Aparecem na página Sobre; os marcados também vão para a página inicial.</p>
+    </div>
+    <Mensagem Erro="@Erro" Sucesso="@Aviso" />
+
+    <ul class="space-y-3">
+        @foreach (var d in Lista)
+        {
+            <li class="card space-y-3 p-4">
+                <div class="grid gap-3 sm:grid-cols-[1fr_auto]">
+                    <div>
+                        <label class="label">Nome</label>
+                        <input class="field" placeholder="Ex.: Família Souza" @bind="d.Nome" />
+                    </div>
+                    <div>
+                        <label class="label">Ordem</label>
+                        <input class="field w-24" type="number" min="0" @bind="d.Ordem" />
+                    </div>
+                </div>
+                <div>
+                    <label class="label">Depoimento</label>
+                    <textarea class="field min-h-24" @bind="d.Texto"></textarea>
+                </div>
+                <EnvioDeImagem Rotulo="Foto da entrega (opcional)" Pasta="depoimentos" @bind-Url="d.FotoUrl" />
+                <Marcar Rotulo="Mostrar na página inicial" @bind-Valor="d.ExibirNaHome" />
+                <div class="flex gap-2">
+                    <button type="button" class="btn-outline min-h-10 px-4 text-sm" disabled="@Ocupado" @onclick="() => Salvar(d)"><Icone Nome="save" Classe="size-4" /> Salvar</button>
+                    <button type="button" class="btn-danger min-h-10 px-4 text-sm" disabled="@Ocupado" @onclick="() => Excluir(d)"><Icone Nome="trash" Classe="size-4" /> Excluir</button>
+                </div>
+            </li>
+        }
+    </ul>
+    <button type="button" class="btn-primary min-h-11 px-4 text-sm" @onclick="() => Lista.Add(new Item { Ordem = Lista.Count + 1, ExibirNaHome = true })">
+        <Icone Nome="plus" Classe="size-4" /> Novo depoimento
+    </button>
+</div>
+
+@code {
+    private sealed class Item
+    {
+        public Guid? Id { get; set; }
+        public string Nome { get; set; } = "";
+        public string Texto { get; set; } = "";
+        public string? FotoUrl { get; set; }
+        public bool ExibirNaHome { get; set; }
+        public int Ordem { get; set; }
+    }
+
+    private List<Item> Lista { get; set; } = [];
+    private bool Ocupado { get; set; }
+    private string? Erro { get; set; }
+    private string? Aviso { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var resposta = await Conteudo.Depoimentos();
+        if (resposta.Sucesso)
+            Lista = [.. resposta.Dados!.Select(d => new Item { Id = d.Id, Nome = d.Nome, Texto = d.Texto, FotoUrl = d.FotoUrl, ExibirNaHome = d.ExibirNaHome, Ordem = d.Ordem })];
+        else Erro = string.Join(" ", resposta.Mensagens);
+    }
+
+    private async Task Salvar(Item d)
+    {
+        (Erro, Aviso, Ocupado) = (null, null, true);
+        var resposta = await Conteudo.SalvarDepoimento(new SalvarDepoimentoRequest(d.Id, d.Nome, d.Texto, d.FotoUrl, d.ExibirNaHome, d.Ordem));
+        Ocupado = false;
+        if (resposta is { Sucesso: true, Dados: { } salvo })
+        {
+            d.Id = salvo.Id;
+            Aviso = $"Depoimento de {salvo.Nome} salvo.";
+        }
+        else Erro = string.Join(" ", resposta.Mensagens);
+    }
+
+    private async Task Excluir(Item d)
+    {
+        if (d.Id is not { } id)
+        {
+            Lista.Remove(d);
+            return;
+        }
+        if (!await Js.InvokeAsync<bool>("confirm", $"Excluir o depoimento de {d.Nome}?")) return;
+        (Erro, Aviso, Ocupado) = (null, null, true);
+        var resposta = await Conteudo.ExcluirDepoimento(id);
+        Ocupado = false;
+        if (resposta.Sucesso) Lista.Remove(d);
+        else Erro = string.Join(" ", resposta.Mensagens);
+    }
+}

@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using System.Text.RegularExpressions;
 using GFX.SiteBruna.Modelo.Enums;
 using GFX.SiteBruna.Modelo.Exceptions;
@@ -159,7 +160,37 @@ public sealed partial class Imovel
         Status == StatusImovel.Ativo
         || (Status is StatusImovel.Vendido or StatusImovel.Alugado
             && VendidoEm is { } vendidoEm
-            && vendidoEm > agora.AddDays(-Math.Max(diasSeloVendido, 0)));
+            && vendidoEm > InicioDoSelo(agora, diasSeloVendido));
+
+    /// <summary>
+    /// A mesma regra de <see cref="EstaVisivelNoSite"/>, como expressão, para o banco filtrar a lista do site
+    /// (o teste do Modelo garante que as duas formas concordam).
+    /// </summary>
+    public static Expression<Func<Imovel, bool>> VisivelNoSite(DateTimeOffset agora, int diasSeloVendido)
+    {
+        var inicioDoSelo = InicioDoSelo(agora, diasSeloVendido);
+        return i => i.Status == StatusImovel.Ativo
+            || ((i.Status == StatusImovel.Vendido || i.Status == StatusImovel.Alugado)
+                && i.VendidoEm != null && i.VendidoEm > inicioDoSelo);
+    }
+
+    private static DateTimeOffset InicioDoSelo(DateTimeOffset agora, int diasSeloVendido) =>
+        agora.AddDays(-Math.Max(diasSeloVendido, 0));
+
+    /// <summary>Endereço da página no site: <c>/imovel/ba101-apartamento-2-quartos-centro</c> (mesmo formato do site em Next).</summary>
+    public string Caminho => CaminhoNoSite(Codigo, Slug);
+
+    public static string CaminhoNoSite(string codigo, string slug) => $"/imovel/{codigo.ToLowerInvariant()}-{slug}";
+
+    /// <summary>
+    /// Código a partir do trecho da URL (<c>ba101-apartamento-…</c> → <c>BA101</c>). Links antigos, com outro slug,
+    /// continuam achando o imóvel; quem mostra a página redireciona para o <see cref="Caminho"/> atual.
+    /// </summary>
+    public static string? CodigoDoTrecho(string trecho)
+    {
+        var codigo = trecho.Split('-', 2)[0].Trim().ToUpperInvariant();
+        return CodigoValido().IsMatch(codigo) ? codigo : null;
+    }
 
     /// <summary>Cópia: vira rascunho, sai dos destaques e ganha "(cópia)" no título, com código novo.</summary>
     public Imovel Copiar(string codigoGerado, DateTimeOffset agora)

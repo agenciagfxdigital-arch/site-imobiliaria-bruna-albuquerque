@@ -1,0 +1,10 @@
+@* Foto da Bruna (enviada pelo painel). Enquanto não houver foto, mostra um retrato provisório. *@
+<img src="@(string.IsNullOrEmpty(Url) ? "/bruna.svg" : Url)" alt="Bruna Albuquerque, corretora de imóveis em Videira"
+     loading="@(Prioridade ? "eager" : "lazy")" fetchpriority="@(Prioridade ? "high" : "auto")" decoding="async"
+     class="absolute inset-0 size-full @Classe" />
+
+@code {
+    [Parameter] public string? Url { get; set; }
+    [Parameter] public bool Prioridade { get; set; }
+    [Parameter] public string Classe { get; set; } = "object-cover";
+}

@@ -1,0 +1,59 @@
+@inherits LayoutComponentBase
+@inject DadosDoSite Dados
+@inject IOptions<OpcoesDoSite> Opcoes
+@using System.Text.Json
+
+<a href="#conteudo" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-full focus:bg-white focus:px-4 focus:py-2">
+    Pular para o conteúdo
+</a>
+
+<CascadingValue Value="Configuracoes" IsFixed>
+    <Cabecalho />
+    <main id="conteudo">@Body</main>
+    <Rodape />
+    <WhatsappFlutuante />
+    <AvisoDeCookies />
+</CascadingValue>
+
+@* Lido pelo site.js: WhatsApp e IDs de GA4/Pixel (só carregados depois do consentimento) *@
+@((MarkupString)$"<script type=\"application/json\" id=\"config-do-site\">{ConfigDoScript}</script>")
+<JsonLd Dados="Empresa" />
+
+@code {
+    private ConfiguracoesResponse Configuracoes { get; set; } = ConfiguracoesResponse.Padrao();
+
+    protected override async Task OnInitializedAsync() => Configuracoes = await Dados.Configuracoes();
+
+    private string ConfigDoScript => JsonSerializer.Serialize(new
+    {
+        whatsapp = Contato.Whatsapp(Configuracoes.Whatsapp, null)["https://wa.me/".Length..],
+        ga4 = Configuracoes.Ga4Id,
+        pixel = Configuracoes.MetaPixelId,
+    });
+
+    private object Empresa
+    {
+        get
+        {
+            var url = Opcoes.Value.UrlBase;
+            string[] redes = [.. new[] { Contato.Instagram(Configuracoes.Instagram), Configuracoes.Facebook }.Where(r => !string.IsNullOrEmpty(r))];
+            return new Dictionary<string, object?>
+            {
+                ["@context"] = "https://schema.org",
+                ["@type"] = new[] { "RealEstateAgent", "LocalBusiness" },
+                ["name"] = "Bruna Albuquerque – Corretora de imóveis",
+                ["url"] = url,
+                ["image"] = $"{url}/compartilhar.png",
+                ["telephone"] = string.IsNullOrEmpty(Configuracoes.Whatsapp) ? null : $"+{Configuracoes.Whatsapp}",
+                ["email"] = string.IsNullOrEmpty(Configuracoes.Email) ? null : Configuracoes.Email,
+                ["address"] = new Dictionary<string, string>
+                {
+                    ["@type"] = "PostalAddress", ["addressLocality"] = "Videira", ["addressRegion"] = "SC", ["addressCountry"] = "BR",
+                },
+                ["areaServed"] = new Dictionary<string, string> { ["@type"] = "City", ["name"] = "Videira" },
+                ["sameAs"] = redes,
+                ["identifier"] = string.IsNullOrEmpty(Configuracoes.Creci) ? null : Configuracoes.Creci,
+            };
+        }
+    }
+}

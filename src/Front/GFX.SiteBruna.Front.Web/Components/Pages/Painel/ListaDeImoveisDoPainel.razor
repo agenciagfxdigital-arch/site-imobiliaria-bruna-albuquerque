@@ -1,0 +1,191 @@
+@page "/admin/imoveis"
+@inject ImovelApi Imoveis
+@inject NavigationManager Navegacao
+@inject IJSRuntime Js
+
+<PageTitle>Imóveis | Painel</PageTitle>
+
+<div class="space-y-5">
+    <div class="flex items-center justify-between gap-3">
+        <h1 class="text-2xl font-semibold">Imóveis</h1>
+        <a href="/admin/imoveis/novo" class="btn-primary min-h-11 px-4 text-sm"><Icone Nome="plus" Classe="size-4" /> Novo imóvel</a>
+    </div>
+
+    <form class="card grid gap-3 p-4 sm:grid-cols-[1fr_auto_auto_auto]" @onsubmit="Carregar">
+        <div class="relative">
+            <Icone Nome="search" Classe="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-navy-400" />
+            <input placeholder="Buscar por título ou código" class="field pl-10" @bind="Busca" />
+        </div>
+        <select class="field" aria-label="Finalidade" @bind="FinalidadeEscolhida">
+            <option value="">Venda e aluguel</option>
+            <option value="Venda">Venda</option>
+            <option value="Aluguel">Aluguel</option>
+        </select>
+        <select class="field" aria-label="Status" @bind="StatusEscolhido">
+            <option value="">Todos os status</option>
+            @foreach (var s in Enum.GetValues<StatusImovel>())
+            {
+                <option value="@s">@Rotulos.Status(s)</option>
+            }
+        </select>
+        <button class="btn-outline min-h-12">Filtrar</button>
+    </form>
+
+    <Mensagem Erro="@Erro" Sucesso="@Sucesso" />
+
+    @if (Lista is null)
+    {
+        <p class="text-sm text-navy-500">Carregando…</p>
+    }
+    else if (Lista.Count == 0)
+    {
+        <div class="card p-10 text-center">
+            <p class="font-medium">Nenhum imóvel encontrado.</p>
+            <a href="/admin/imoveis/novo" class="btn-primary mt-4">Cadastrar o primeiro</a>
+        </div>
+    }
+    else
+    {
+        <ul class="space-y-3">
+            @foreach (var p in Lista)
+            {
+                <li class="card flex gap-3 p-3 sm:items-center sm:gap-4 sm:p-4">
+                    <a href="@($"/admin/imoveis/{p.Id}")" class="relative size-20 shrink-0 overflow-hidden rounded-xl bg-navy-100 sm:size-24">
+                        @if (p.CapaUrl is { } capa)
+                        {
+                            <img src="@capa" alt="" class="absolute inset-0 size-full object-cover" />
+                        }
+                    </a>
+                    <div class="min-w-0 flex-1">
+                        <div class="flex flex-wrap items-center gap-1.5">
+                            <span class="rounded-full px-2 py-0.5 text-[11px] font-semibold @EstiloDoStatus(p.Status)">@Rotulos.Status(p.Status)</span>
+                            <span class="text-xs text-navy-500">@p.Codigo · @Rotulos.Finalidade(p.Finalidade)</span>
+                            @if (p.Destaque)
+                            {
+                                <span title="Destaque" aria-label="Destaque"><Icone Nome="star" Classe="size-3.5 text-gold-500" /></span>
+                            }
+                            @if (p.Origem == OrigemImovel.Whatsapp)
+                            {
+                                <span class="text-[11px] text-navy-400">pelo WhatsApp</span>
+                            }
+                        </div>
+                        <a href="@($"/admin/imoveis/{p.Id}")" class="mt-1 line-clamp-2 text-sm font-medium hover:underline sm:text-base">@p.Titulo</a>
+                        <p class="mt-0.5 text-sm text-navy-600">@Formato.PrecoPrincipal(p.Finalidade, p.Preco, p.Aluguel)</p>
+                    </div>
+                    <div class="relative shrink-0">
+                        <button type="button" @onclick="() => MenuAberto = MenuAberto == p.Id ? null : p.Id" disabled="@(Ocupado == p.Id)"
+                                class="grid size-11 place-items-center rounded-full text-navy-600 hover:bg-navy-50 disabled:opacity-50"
+                                aria-label="@($"Ações do imóvel {p.Codigo}")" aria-expanded="@(MenuAberto == p.Id ? "true" : "false")">
+                            <Icone Nome="@(Ocupado == p.Id ? "loader-circle" : "ellipsis-vertical")" Classe="@(Ocupado == p.Id ? "size-5 animate-spin" : "size-5")" />
+                        </button>
+                        @if (MenuAberto == p.Id)
+                        {
+                            var vendido = p.Finalidade == Finalidade.Venda ? StatusImovel.Vendido : StatusImovel.Alugado;
+                            const string item = "flex w-full items-center gap-3 px-4 py-3 text-left text-sm hover:bg-navy-50";
+                            <div class="absolute top-12 right-0 z-20 w-60 overflow-hidden rounded-2xl bg-white py-1 shadow-xl ring-1 ring-navy-100">
+                                <a href="@($"/admin/imoveis/{p.Id}")" class="@item"><Icone Nome="pencil" Classe="size-4" /> Editar</a>
+                                @if (p.Status is StatusImovel.Ativo or StatusImovel.Vendido or StatusImovel.Alugado)
+                                {
+                                    <a href="@($"/imovel/{p.Codigo.ToLowerInvariant()}")" target="_blank" class="@item"><Icone Nome="external-link" Classe="size-4" /> Ver no site</a>
+                                }
+                                else
+                                {
+                                    <a href="@($"/admin/imoveis/{p.Id}/preview")" class="@item"><Icone Nome="eye" Classe="size-4" /> Pré-visualizar</a>
+                                }
+                                <button type="button" class="@item" @onclick="() => Executar(p, () => Imoveis.AlterarDestaque(p.Id, !p.Destaque))">
+                                    <Icone Nome="star" Classe="size-4" /> @(p.Destaque ? "Tirar dos destaques" : "Marcar como destaque")
+                                </button>
+                                @if (p.Status == StatusImovel.Ativo)
+                                {
+                                    <button type="button" class="@item" @onclick="() => Executar(p, () => Imoveis.AlterarStatus(p.Id, StatusImovel.Pausado))">
+                                        <Icone Nome="eye-off" Classe="size-4" /> Pausar (tirar do site)
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button type="button" class="@item" @onclick="() => Executar(p, () => Imoveis.AlterarStatus(p.Id, StatusImovel.Ativo))">
+                                        <Icone Nome="play" Classe="size-4" /> Publicar / reativar
+                                    </button>
+                                }
+                                @if (p.Status != vendido)
+                                {
+                                    <button type="button" class="@item" @onclick="() => Executar(p, () => Imoveis.AlterarStatus(p.Id, vendido), PerguntaDeVenda(p, vendido))">
+                                        <Icone Nome="key-round" Classe="size-4" /> Marcar como @Rotulos.Status(vendido).ToLowerInvariant()
+                                    </button>
+                                }
+                                <button type="button" class="@item" @onclick="() => Duplicar(p)"><Icone Nome="copy-plus" Classe="size-4" /> Duplicar</button>
+                                <button type="button" class="@item text-rose-700" @onclick="() => Executar(p, () => Imoveis.Excluir(p.Id), PerguntaDeExclusao(p))">
+                                    <Icone Nome="trash" Classe="size-4" /> Excluir
+                                </button>
+                            </div>
+                        }
+                    </div>
+                </li>
+            }
+        </ul>
+    }
+</div>
+
+@code {
+    [SupplyParameterFromQuery(Name = "status")] public string? StatusDaUrl { get; set; }
+    [SupplyParameterFromQuery(Name = "salvo")] public string? Salvo { get; set; }
+
+    private List<ImovelResumoResponse>? Lista { get; set; }
+    private string Busca { get; set; } = "";
+    private string FinalidadeEscolhida { get; set; } = "";
+    private string StatusEscolhido { get; set; } = "";
+    private Guid? MenuAberto { get; set; }
+    private Guid? Ocupado { get; set; }
+    private string? Erro { get; set; }
+    private string? Sucesso { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        StatusEscolhido = Enum.TryParse<StatusImovel>(StatusDaUrl, out var s) ? s.ToString() : "";
+        if (!string.IsNullOrEmpty(Salvo)) Sucesso = $"Imóvel {Salvo} salvo.";
+        await Carregar();
+    }
+
+    private async Task Carregar()
+    {
+        var resposta = await Imoveis.Listar(Busca,
+            Enum.TryParse<StatusImovel>(StatusEscolhido, out var s) ? s : null,
+            Enum.TryParse<Finalidade>(FinalidadeEscolhida, out var f) ? f : null);
+        if (resposta.Sucesso) (Lista, Erro) = (resposta.Dados, null);
+        else Erro = string.Join(" ", resposta.Mensagens);
+    }
+
+    private async Task Executar(ImovelResumoResponse p, Func<Task<ApiResponse<bool>>> acao, string? confirmacao = null)
+    {
+        MenuAberto = null;
+        if (confirmacao is not null && !await Js.InvokeAsync<bool>("confirm", confirmacao)) return;
+        (Ocupado, Erro, Sucesso) = (p.Id, null, null);
+        var resposta = await acao();
+        Ocupado = null;
+        if (!resposta.Sucesso) Erro = string.Join(" ", resposta.Mensagens);
+        await Carregar();
+    }
+
+    private async Task Duplicar(ImovelResumoResponse p)
+    {
+        (MenuAberto, Ocupado, Erro) = (null, p.Id, null);
+        var resposta = await Imoveis.Duplicar(p.Id);
+        Ocupado = null;
+        if (resposta is { Sucesso: true, Dados: { } copia }) Navegacao.NavigateTo($"/admin/imoveis/{copia.Id}");
+        else Erro = string.Join(" ", resposta.Mensagens);
+    }
+
+    private static string PerguntaDeVenda(ImovelResumoResponse p, StatusImovel vendido) =>
+        $"Marcar {p.Codigo} como {Rotulos.Status(vendido).ToLowerInvariant()}?";
+
+    private static string PerguntaDeExclusao(ImovelResumoResponse p) =>
+        $"Excluir o imóvel {p.Codigo} definitivamente? As fotos também serão apagadas.";
+
+    private static string EstiloDoStatus(StatusImovel status) => status switch
+    {
+        StatusImovel.Rascunho => "bg-navy-100 text-navy-700",
+        StatusImovel.Ativo => "bg-emerald-100 text-emerald-800",
+        StatusImovel.Pausado => "bg-amber-100 text-amber-800",
+        _ => "bg-rose-100 text-rose-800",
+    };
+}

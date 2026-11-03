@@ -1,0 +1,178 @@
+@page "/admin/paginas/{Chave}"
+@inject ConteudoApi Conteudo
+@inject NavigationManager Navegacao
+
+<PageTitle>@Titulo | Painel</PageTitle>
+
+<div class="mx-auto max-w-3xl space-y-4 pb-24">
+    <div>
+        <a href="/admin/paginas" class="text-sm text-navy-600 hover:underline">← Páginas</a>
+        <h1 class="mt-1 text-2xl font-semibold">@Titulo</h1>
+    </div>
+
+    @if (Paginas is null)
+    {
+        <Mensagem Erro="@Erro" />
+    }
+    else if (Chave == "home")
+    {
+        var c = Paginas.Home;
+        <Secao Titulo="Abertura">
+            <Campo Rotulo="Título" @bind-Valor="c.HeroTitulo" />
+            <Campo Rotulo="Subtítulo" @bind-Valor="c.HeroSubtitulo" Linhas="3" />
+            <EnvioDeImagem Rotulo="Foto da abertura" Pasta="site" @bind-Url="c.HeroFoto" />
+            <ListaDeTextos Rotulo="Serviços (lista abaixo dos botões)" Itens="c.Servicos" />
+        </Secao>
+        <Secao Titulo="Passo a passo">
+            <Campo Rotulo="Título" @bind-Valor="c.PassosTitulo" />
+            <Campo Rotulo="Texto" @bind-Valor="c.PassosTexto" Linhas="3" />
+            <ListaDePassos Rotulo="Passos" Itens="c.Passos" />
+        </Secao>
+        <Secao Titulo="Quem é a Bruna">
+            <Campo Rotulo="Título" @bind-Valor="c.BioTitulo" />
+            <Campo Rotulo="Texto" @bind-Valor="c.BioTexto" Linhas="8" Dica="Deixe uma linha em branco entre os parágrafos." />
+            <EnvioDeImagem Rotulo="Foto (se vazia, usa a da abertura)" Pasta="site" @bind-Url="c.BioFoto" />
+        </Secao>
+        <Secao Titulo="Minha Casa Minha Vida">
+            <Campo Rotulo="Título" @bind-Valor="c.McmvTitulo" />
+            <Campo Rotulo="Texto" @bind-Valor="c.McmvTexto" Linhas="5" />
+        </Secao>
+        <Secao Titulo="Chamada final">
+            <Campo Rotulo="Título" @bind-Valor="c.CtaTitulo" />
+            <Campo Rotulo="Texto" @bind-Valor="c.CtaTexto" Linhas="3" />
+        </Secao>
+    }
+    else if (Chave == "sobre")
+    {
+        var c = Paginas.Sobre;
+        <Secao Titulo="Abertura">
+            <EnvioDeImagem Rotulo="Foto" Pasta="site" @bind-Url="c.Foto" />
+            <Campo Rotulo="Título" @bind-Valor="c.Titulo" />
+            <Campo Rotulo="Subtítulo" @bind-Valor="c.Subtitulo" Linhas="2" />
+            <div class="grid gap-4 sm:grid-cols-2">
+                <Campo Rotulo="Anos de experiência" @bind-Valor="c.AnosExperiencia" Dica="Vazio = não aparece" />
+                <Campo Rotulo="Famílias atendidas" @bind-Valor="c.FamiliasAtendidas" Dica="Vazio = não aparece" />
+            </div>
+        </Secao>
+        <Secao Titulo="Minha história">
+            <Campo Rotulo="Texto" @bind-Valor="c.Historia" Linhas="12" Dica="Deixe uma linha em branco entre os parágrafos." />
+        </Secao>
+        <Secao Titulo="Como eu trabalho">
+            <ListaDePassos Rotulo="Passos" Itens="c.Passos" />
+        </Secao>
+        <Secao Titulo="Vídeo e entregas de chave">
+            <Campo Rotulo="Link do vídeo (Reels ou YouTube)" @bind-Valor="c.VideoUrl" />
+            <div>
+                <span class="label">Fotos de entregas de chave</span>
+                <div class="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                    @for (var i = 0; i < c.Entregas.Count; i++)
+                    {
+                        var indice = i;
+                        <div class="relative aspect-square overflow-hidden rounded-xl bg-navy-100">
+                            <img src="@c.Entregas[indice]" alt="" class="absolute inset-0 size-full object-cover" />
+                            <button type="button" class="absolute top-1.5 right-1.5 grid size-8 place-items-center rounded-full bg-white/90 text-rose-700 shadow" aria-label="Remover foto"
+                                    @onclick="() => c.Entregas.RemoveAt(indice)"><Icone Nome="trash" Classe="size-4" /></button>
+                        </div>
+                    }
+                </div>
+                <div class="mt-3"><EnvioDeImagem Rotulo="Nova entrega de chave" Pasta="entregas" Url="@null" UrlChanged="url => { if (url is not null) c.Entregas.Add(url); }" /></div>
+            </div>
+        </Secao>
+        <Secao Titulo="Chamada final">
+            <Campo Rotulo="Título" @bind-Valor="c.CtaTitulo" />
+        </Secao>
+    }
+    else if (Chave == "mcmv")
+    {
+        var c = Paginas.Mcmv;
+        <Secao Titulo="Abertura">
+            <Campo Rotulo="Título" @bind-Valor="c.Titulo" />
+            <Campo Rotulo="Texto de abertura" @bind-Valor="c.TextoAbertura" Linhas="4" />
+            <EnvioDeImagem Rotulo="Foto" Pasta="site" @bind-Url="c.Foto" />
+        </Secao>
+        <Secao Titulo="Explicações">
+            <Campo Rotulo="Como funciona o programa" @bind-Valor="c.ComoFunciona" Linhas="8" />
+            <Campo Rotulo="Entrada parcelada" @bind-Valor="c.EntradaParcelada" Linhas="6" />
+            <Campo Rotulo="Como o FGTS ajuda" @bind-Valor="c.Fgts" Linhas="6" />
+        </Secao>
+        <Secao Titulo="Entenda a parcela">
+            <ListaDePassos Rotulo="Cartões" Itens="c.Entenda" />
+        </Secao>
+        <Secao Titulo="Da simulação até a chave">
+            <ListaDePassos Rotulo="Etapas" Itens="c.Etapas" />
+        </Secao>
+        <Secao Titulo="Documentos">
+            <ListaDeTextos Rotulo="De quem vai comprar" Itens="c.Documentos" />
+            <ListaDeTextos Rotulo="Para usar o FGTS" Itens="c.DocumentosFgts" />
+            <Campo Rotulo="Observação" @bind-Valor="c.DocumentosObs" Linhas="3" />
+        </Secao>
+        <Secao Titulo="Dica e aviso">
+            <Campo Rotulo="Antes da simulação (dica)" @bind-Valor="c.DicaPlanejamento" Linhas="3" />
+            <Campo Rotulo="Aviso no fim da página" @bind-Valor="c.Aviso" Linhas="3" />
+        </Secao>
+    }
+    else if (Chave == "faq")
+    {
+        <PerguntasFrequentes />
+    }
+
+    @if (Paginas is not null && Chave is "home" or "sobre" or "mcmv")
+    {
+        <Mensagem Erro="@Erro" />
+        <div class="fixed inset-x-0 bottom-[60px] z-20 border-t border-navy-100 bg-white/95 p-3 backdrop-blur lg:bottom-0 lg:left-64">
+            <div class="mx-auto flex max-w-3xl items-center gap-3">
+                <button type="button" class="btn-primary min-h-12 flex-1 text-sm" disabled="@Ocupado" @onclick="Salvar">
+                    <Icone Nome="@(Ocupado ? "loader-circle" : "save")" Classe="@(Ocupado ? "size-4 animate-spin" : "size-4")" /> Salvar página
+                </button>
+                @if (!string.IsNullOrEmpty(Aviso))
+                {
+                    <span class="text-xs text-emerald-700" role="status">@Aviso</span>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string Chave { get; set; } = "";
+
+    private PaginasResponse? Paginas { get; set; }
+    private bool Ocupado { get; set; }
+    private string? Erro { get; set; }
+    private string? Aviso { get; set; }
+
+    private string Titulo => Chave switch
+    {
+        "home" => "Página inicial",
+        "sobre" => "Sobre",
+        "mcmv" => "Minha Casa Minha Vida",
+        "faq" => "Perguntas frequentes",
+        _ => "Página",
+    };
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Chave is not ("home" or "sobre" or "mcmv" or "faq"))
+        {
+            Navegacao.NavigateTo("/admin/paginas");
+            return;
+        }
+        var resposta = await Conteudo.Paginas();
+        if (resposta.Sucesso) Paginas = resposta.Dados;
+        else Erro = string.Join(" ", resposta.Mensagens);
+    }
+
+    private async Task Salvar()
+    {
+        (Erro, Aviso, Ocupado) = (null, null, true);
+        var resposta = Chave switch
+        {
+            "home" => await Conteudo.SalvarHome(Paginas!.Home),
+            "sobre" => await Conteudo.SalvarSobre(Paginas!.Sobre),
+            _ => await Conteudo.SalvarMcmv(Paginas!.Mcmv),
+        };
+        Ocupado = false;
+        if (resposta.Sucesso) Aviso = "Página salva. O site já mostra a versão nova.";
+        else Erro = string.Join(" ", resposta.Mensagens);
+    }
+}

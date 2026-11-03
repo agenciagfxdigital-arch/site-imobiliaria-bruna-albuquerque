@@ -1,0 +1,12 @@
+@using System.Text.Json
+@* Dados estruturados para o Google (schema.org). O serializador escapa "<", então o conteúdo não fecha a tag. *@
+@((MarkupString)$"<script type=\"application/ld+json\">{JsonSerializer.Serialize(Dados, Opcoes)}</script>")
+
+@code {
+    private static readonly JsonSerializerOptions Opcoes = new()
+    {
+        DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
+    };
+
+    [Parameter, EditorRequired] public object Dados { get; set; } = default!;
+}
