@@ -10,8 +10,8 @@ using Microsoft.IdentityModel.Tokens;
 namespace GFX.SiteBruna.Dados.Servicos;
 
 /// <summary>
-/// JWT do painel (HS256). A chave vem de <c>Jwt:Key</c> (user secrets em Development; variável <c>Jwt__Key</c> nos
-/// demais ambientes) e nunca fica em arquivo versionado.
+/// JWT do painel (HS256). A chave vem de <c>JwtDoSite:Key</c> (user secrets em Development; variável
+/// <c>JwtDoSite__Key</c> nos demais ambientes) e nunca fica em arquivo versionado.
 /// </summary>
 internal sealed class TokenService : ITokenService
 {
@@ -23,13 +23,16 @@ internal sealed class TokenService : ITokenService
 
     public TokenService(IConfiguration configuration, IRelogio relogio)
     {
-        var chave = configuration["Jwt:Key"] ?? throw new InvalidOperationException(
-            "Configure Jwt:Key (user secrets em Development; variável de ambiente Jwt__Key nos demais).");
-        if (Encoding.UTF8.GetByteCount(chave) < 32) throw new InvalidOperationException("Jwt:Key precisa ter no mínimo 32 bytes.");
+        var secao = configuration.GetSection(DependencyInjection.SecaoDoJwt);
+        var chave = secao["Key"] ?? throw new InvalidOperationException(
+            $"Configure {DependencyInjection.SecaoDoJwt}:Key (user secrets em Development; variável de ambiente " +
+            $"{DependencyInjection.SecaoDoJwt}__Key nos demais).");
+        if (Encoding.UTF8.GetByteCount(chave) < 32)
+            throw new InvalidOperationException($"{DependencyInjection.SecaoDoJwt}:Key precisa ter no mínimo 32 bytes.");
         _chave = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(chave));
-        _emissor = configuration["Jwt:Issuer"] ?? "";
-        _publico = configuration["Jwt:Audience"] ?? "";
-        _minutos = configuration.GetValue<int?>("Jwt:MinutosDoToken") ?? 480;
+        _emissor = secao["Issuer"] ?? "";
+        _publico = secao["Audience"] ?? "";
+        _minutos = secao.GetValue<int?>("MinutosDoToken") ?? 480;
         _relogio = relogio;
     }
 

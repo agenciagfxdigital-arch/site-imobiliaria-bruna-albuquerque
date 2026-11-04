@@ -6,12 +6,29 @@ using GFX.SiteBruna.Api.RateLimiting;
 using GFX.SiteBruna.Api.Whatsapp;
 using GFX.SiteBruna.Aplicacao;
 using GFX.SiteBruna.Dados;
+using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers()
     .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
-builder.Services.AddOpenApi();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Informe apenas o token (sem o prefixo 'Bearer '). Pegue um em POST /api/Auth/entrar.",
+    });
+    options.AddSecurityRequirement(documento => new OpenApiSecurityRequirement
+    {
+        [new OpenApiSecuritySchemeReference("Bearer", documento)] = [],
+    });
+});
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddAutenticacaoDoPainel(builder.Configuration, builder.Environment);
@@ -29,7 +46,13 @@ var app = builder.Build();
 if (args.FirstOrDefault() == CriarUsuario.Nome) return await CriarUsuario.Executar(app.Services, args);
 
 app.UseExceptionHandler();
-if (app.Environment.IsDevelopment()) app.MapOpenApi().AllowAnonymous();
+// Swagger só em desenvolvimento e antes da autenticação: a negação por padrão bloquearia a própria tela com 401
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(options => options.EnablePersistAuthorization());
+    app.MapGet("/", () => Results.Redirect("/swagger")).ExcludeFromDescription().AllowAnonymous();
+}
 app.UseAuthentication();
 app.UseRateLimiter();
 app.UseAuthorization();

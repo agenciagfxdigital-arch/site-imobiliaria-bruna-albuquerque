@@ -1,6 +1,6 @@
 namespace GFX.SiteBruna.Aplicacao.Interfaces;
 
-/// <summary>Storage das imagens públicas (Supabase Storage).</summary>
+/// <summary>Storage das imagens públicas (pasta em disco, servida pelo Front.Web).</summary>
 public interface IArmazenamentoDeArquivos
 {
     /// <summary>Grava o arquivo e devolve a URL pública.</summary>

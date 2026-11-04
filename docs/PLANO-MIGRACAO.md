@@ -48,7 +48,7 @@ em xUnit.
 
 - [x] `AppDbContext`, configurações, migration `Inicial` (schema `site`; ver `docs/MIGRATIONS.md`) — **não aplicada**
 - [x] Repositórios, `UnitOfWork`, `VerificacaoBanco`
-- [x] Supabase Storage (REST), imagens (SkiaSharp), Cloud API do WhatsApp e modo simulado, cache do front via HTTP
+- [x] Fotos em disco (ADR-010), imagens (SkiaSharp), Cloud API do WhatsApp e modo simulado, cache do front via HTTP
 - [x] Testes de integração com Postgres descartável (`Testes.Integracao`, precisa do Docker), incluindo o assistente de
   ponta a ponta
 - [x] Módulos de conteúdo (configurações, páginas, FAQ, depoimentos, bairros), eventos e usuários do painel:
@@ -83,7 +83,8 @@ em xUnit.
 
 ## Semana 4 — Entrega
 
-- [ ] Dockerfile da Api e do Front, `compose.yaml` com Caddy (VPS)
+- [ ] Dockerfile da Api e do Front, `compose.yaml` com Caddy (VPS), volume `/dados/fotos` nos dois contêineres
+- [ ] Backup automático das fotos para fora da VPS (ADR-010)
 - [ ] Comparação visual página a página com o site em Next
 - [ ] Teste do WhatsApp com a Meta, revisão de segurança, aprovação da Bruna
 - [ ] Troca de DNS

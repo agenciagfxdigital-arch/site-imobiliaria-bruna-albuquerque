@@ -61,7 +61,7 @@
             ["description"] = Formato.Resumo(p.Descricao, 300),
             ["url"] = $"{url}{p.Caminho}",
             ["datePosted"] = p.CriadoEm,
-            ["image"] = p.Fotos.Select(f => f.Url).ToArray(),
+            ["image"] = p.Fotos.Select(f => $"{url}{f.Url}").ToArray(),
             ["identifier"] = p.Codigo,
             ["offers"] = preco > 0
                 ? new Dictionary<string, object>

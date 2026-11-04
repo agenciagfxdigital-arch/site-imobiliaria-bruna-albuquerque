@@ -24,15 +24,16 @@ public sealed class ApiDeTeste : IAsyncLifetime
         await _container.StartAsync();
         var configuracao = new Dictionary<string, string>
         {
-            ["ConnectionStrings:DefaultConnection"] = _container.GetConnectionString(),
-            ["Jwt:Key"] = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(48)),
-            ["Jwt:Issuer"] = "site-bruna-teste",
-            ["Jwt:Audience"] = "painel-teste",
+            ["ConnectionStrings:SiteBruna"] = _container.GetConnectionString(),
+            ["JwtDoSite:Key"] = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(48)),
+            ["JwtDoSite:Issuer"] = "site-bruna-teste",
+            ["JwtDoSite:Audience"] = "painel-teste",
             ["WhatsApp:Habilitado"] = "true",
             ["WhatsApp:Modo"] = "simulado",
             ["WhatsApp:AppSecret"] = AppSecret,
             ["WhatsApp:VerifyToken"] = VerifyToken,
             ["Site:UrlPublica"] = "https://site.teste",
+            ["Fotos:Pasta"] = Path.Combine(Path.GetTempPath(), $"site-bruna-testes-{Guid.NewGuid():N}"),
         };
         _fabrica = new WebApplicationFactory<Program>().WithWebHostBuilder(b =>
         {

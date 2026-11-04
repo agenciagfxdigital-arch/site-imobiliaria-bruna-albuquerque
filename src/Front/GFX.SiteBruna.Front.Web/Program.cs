@@ -42,6 +42,7 @@ if (!app.Environment.IsDevelopment())
 }
 app.UseStatusCodePagesWithReExecute("/nao-encontrada", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
+app.UseFotosNoDisco();
 app.UseSemAntiforgeryNoSite();
 app.UseOutputCache();
 app.UseAntiforgery();

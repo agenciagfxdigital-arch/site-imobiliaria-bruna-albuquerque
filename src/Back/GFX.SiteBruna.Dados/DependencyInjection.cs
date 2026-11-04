@@ -16,10 +16,19 @@ namespace GFX.SiteBruna.Dados;
 /// </summary>
 public static class DependencyInjection
 {
+    public const string NomeDaConexao = "SiteBruna";
+
+    /// <summary>Seção do token do painel. Pelo mesmo motivo da conexão, não é "Jwt": a variável <c>Jwt__Key</c> de outro
+    /// projeto na máquina passaria por cima dos user secrets e assinaria os tokens com a chave errada.</summary>
+    public const string SecaoDoJwt = "JwtDoSite";
+
     public static IServiceCollection AddDados(this IServiceCollection services, IConfiguration configuration)
     {
-        var conexao = configuration.GetConnectionString("DefaultConnection")
-            ?? throw new InvalidOperationException("Configure ConnectionStrings:DefaultConnection.");
+        // Nome próprio (e não "DefaultConnection"): uma variável de ambiente de outro projeto na mesma máquina não troca o
+        // banco do site sem ninguém perceber
+        var conexao = configuration.GetConnectionString(NomeDaConexao) is { Length: > 0 } texto
+            ? texto
+            : throw new InvalidOperationException($"Configure ConnectionStrings:{NomeDaConexao} (docs/CONFIGURACAO.md).");
 
         // Fábrica (para a fila, que grava fora da unidade de trabalho) + um contexto por requisição
         services.AddDbContextFactory<AppDbContext>(o => o
@@ -28,7 +37,7 @@ public static class DependencyInjection
         services.AddScoped(sp => sp.GetRequiredService<IDbContextFactory<AppDbContext>>().CreateDbContext());
         services.AddHealthChecks().AddDbContextCheck<AppDbContext>("banco");
 
-        services.Configure<OpcoesDoSupabase>(configuration.GetSection("Supabase"));
+        services.Configure<OpcoesDasFotos>(configuration.GetSection("Fotos"));
         services.Configure<OpcoesDoWhatsapp>(configuration.GetSection("WhatsApp"));
         services.Configure<OpcoesDoSite>(configuration.GetSection("Site"));
 
@@ -55,7 +64,7 @@ public static class DependencyInjection
         services.AddSingleton<IEspera, EsperaReal>();
         services.AddSingleton<IEnderecosDoSite, EnderecosDoSite>();
         services.AddSingleton<IProcessadorDeImagens, ProcessadorSkia>();
-        services.AddHttpClient<IArmazenamentoDeArquivos, ArmazenamentoSupabase>();
+        services.AddSingleton<IArmazenamentoDeArquivos, ArmazenamentoEmDisco>();
         services.AddHttpClient<ICacheDoSite, CacheDoSiteViaHttp>(c => c.Timeout = TimeSpan.FromSeconds(5));
 
         services.AddHttpClient<CanalMeta>(c => c.Timeout = TimeSpan.FromSeconds(30));

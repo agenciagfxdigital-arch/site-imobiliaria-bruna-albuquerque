@@ -7,13 +7,11 @@ em produção, variáveis de ambiente (`Secao__Chave`, com dois sublinhados).
 
 | Chave | Segredo? | Para quê |
 |---|---|---|
-| `ConnectionStrings:DefaultConnection` | sim | Postgres (Supabase: Session pooler com SSL) |
-| `Jwt:Key` | sim | Assina o token do painel (mínimo 32 bytes, aleatório) |
-| `Jwt:Issuer`, `Jwt:Audience` | não | `site-bruna`, `painel-bruna` (já no `appsettings.json`) |
-| `Jwt:MinutosDoToken` | não | Padrão 480 (8 h) |
-| `Supabase:Url` | não | URL do projeto (Storage das fotos) |
-| `Supabase:ChaveServico` | sim | Chave service_role, só no servidor |
-| `Supabase:Bucket` | não | Padrão `media` |
+| `ConnectionStrings:SiteBruna` | sim | Postgres (Supabase: Session pooler com SSL). Nome próprio de propósito: uma variável `ConnectionStrings__DefaultConnection` de outro projeto não interfere |
+| `JwtDoSite:Key` | sim | Assina o token do painel (mínimo 32 bytes, aleatório). Nome próprio pelo mesmo motivo: uma variável `Jwt__Key` de outro projeto não interfere |
+| `JwtDoSite:Issuer`, `JwtDoSite:Audience` | não | `site-bruna`, `painel-bruna` (já no `appsettings.json`) |
+| `JwtDoSite:MinutosDoToken` | não | Padrão 480 (8 h) |
+| `Fotos:Pasta` | não | Onde as fotos são gravadas. Padrão `/dados/fotos` (volume na VPS); em desenvolvimento, `.fotos-locais` na raiz do repositório. Precisa ser a mesma no Front.Web |
 | `WhatsApp:Habilitado` | não | `true` liga o webhook |
 | `WhatsApp:Modo` | não | `meta` ou `simulado` (nada vai para a Meta; respostas no log) |
 | `WhatsApp:Token`, `WhatsApp:PhoneNumberId` | sim / não | Cloud API da Meta |
@@ -24,10 +22,10 @@ em produção, variáveis de ambiente (`Secao__Chave`, com dois sublinhados).
 Exemplo (desenvolvimento, uma vez por máquina):
 
 ```bash
-dotnet user-secrets set "Jwt:Key" "<texto aleatório de 48+ caracteres>" --project src/Back/GFX.SiteBruna.Api
+dotnet user-secrets set "JwtDoSite:Key" "<texto aleatório de 48+ caracteres>" --project src/Back/GFX.SiteBruna.Api
 ```
 ```bash
-dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Port=54322;Database=site_bruna_dev;Username=postgres;Password=<senha>" --project src/Back/GFX.SiteBruna.Api
+dotnet user-secrets set "ConnectionStrings:SiteBruna" "Host=localhost;Port=5432;Database=site_bruna_dev;Username=postgres;Password=<senha>" --project src/Back/GFX.SiteBruna.Api
 ```
 
 ### Front.Web
@@ -38,6 +36,7 @@ dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Po
 | `Site:UrlPublica` | não | Endereço público (canônico, sitemap, compartilhamento) |
 | `Site:ChaveDoCache` | sim | A mesma do `Site:ChaveDoCache` da Api |
 | `Site:CacheEmMinutos` | não | Cache das páginas do site (padrão 5; 0 desliga) |
+| `Fotos:Pasta` | não | A mesma da Api: o Front serve essa pasta em `/media` |
 
 Em desenvolvimento o Front roda em `http://localhost:5000` (o mesmo `Site:UrlPublica` e `Site:UrlInternaDoFront` do
 `appsettings.Development.json` da Api). Para testar a invalidação do cache, use a mesma chave nos dois:
@@ -80,9 +79,10 @@ Negação por padrão: toda rota exige o token do painel, exceto as marcadas com
 | `POST /api/Site/eventos` | pública, 120/min por IP | Sempre 204 |
 | `GET/POST /api/whatsapp/webhook` | pública, assinatura da Meta | Única rota da Api exposta na internet além do site |
 | `GET /health` | pública | Banco no ar |
+| `/swagger` (e `/` redireciona para lá) | só em Development | Documentação e testes das rotas; o token vai em "Authorize" |
 
 Rotas do Front.Web além das páginas: `GET /sitemap.xml`, `GET /robots.txt`, `POST /eventos` (repassa à Api) e
-`POST /_cache/invalidar` (só com a chave). O painel fica em `/admin` (login em `/admin/entrar`).
+`POST /_cache/invalidar` (só com a chave). As fotos ficam em `GET /media/...`. O painel fica em `/admin` (login em `/admin/entrar`).
 
 Na VPS, só o Front.Web e o webhook ficam expostos pelo Caddy; as demais rotas da Api são chamadas pelo Front na rede
 interna do Docker (como no sistema interno, ADR-027 de lá). Atrás do proxy, ligue

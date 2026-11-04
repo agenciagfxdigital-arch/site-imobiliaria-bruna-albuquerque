@@ -484,6 +484,9 @@ $RECYCLE.BIN/
 # Vim temporary swap files
 *.swp
 
+# Fotos gravadas em desenvolvimento (Fotos:Pasta)
+.fotos-locais/
+
 # Perfis locais do Visual Studio (podem conter Jwt__Chave e ConnectionStrings__Gfx)
 src/Back/GFX.SistemaInterno.Api/Properties/launchSettings.json
 

@@ -1,6 +1,7 @@
 using System.Text;
 using GFX.SiteBruna.Aplicacao.Authorization;
 using GFX.SiteBruna.Aplicacao.Services;
+using GFX.SiteBruna.Dados;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
@@ -12,9 +13,10 @@ public static class AutenticacaoExtensions
     public static IServiceCollection AddAutenticacaoDoPainel(
         this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment ambiente)
     {
-        var chave = configuration["Jwt:Key"] ?? throw new InvalidOperationException(
-            $"Jwt:Key não configurada (ambiente '{ambiente.EnvironmentName}'). Em Development use os user secrets; " +
-            "nos demais ambientes, a variável de ambiente Jwt__Key.");
+        var secao = configuration.GetSection(DependencyInjection.SecaoDoJwt);
+        var chave = secao["Key"] ?? throw new InvalidOperationException(
+            $"{DependencyInjection.SecaoDoJwt}:Key não configurada (ambiente '{ambiente.EnvironmentName}'). Em Development " +
+            $"use os user secrets; nos demais ambientes, a variável de ambiente {DependencyInjection.SecaoDoJwt}__Key.");
 
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(opcoes =>
@@ -24,9 +26,9 @@ public static class AutenticacaoExtensions
                 opcoes.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
-                    ValidIssuer = configuration["Jwt:Issuer"],
+                    ValidIssuer = secao["Issuer"],
                     ValidateAudience = true,
-                    ValidAudience = configuration["Jwt:Audience"],
+                    ValidAudience = secao["Audience"],
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(chave)),

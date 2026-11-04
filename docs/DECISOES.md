@@ -35,7 +35,7 @@ Regras que estavam em triggers (código em maiúsculas, data de venda, visibilid
 
 ## ADR-004 · Login próprio; fotos no Supabase Storage
 
-**Data:** 2026-10-30 · **Status:** Aceita
+**Data:** 2026-10-30 · **Status:** Aceita; a parte das fotos foi substituída pelo ADR-010
 
 **Decisão.** Login do painel como no sistema interno (hash do ASP.NET Core Identity + token), sem Supabase Auth. As
 fotos dos imóveis continuam no Supabase Storage, gravadas pelo Dados com a chave de serviço; o site serve as URLs
@@ -124,3 +124,20 @@ não tem formulário POST, esse cookie é retirado das respostas do site (`Cache
 consulta; `Imovel.EstaVisivelNoSite` continua para o objeto em memória. Um teste do Modelo garante que as duas formas
 concordam, e um teste de integração confere a tradução para SQL. Endereço da página (`Imovel.Caminho`) e escolha de
 semelhantes (`ImoveisSemelhantes`) também ficam no Modelo; o Front recebe o caminho pronto.
+
+## ADR-010 · Fotos em disco na VPS
+
+**Data:** 2026-11-04 · **Status:** Aceita (substitui a parte das fotos do ADR-004)
+
+**Contexto.** Decisão do dev, antes de existir qualquer foto cadastrada em produção: não há arquivos para migrar.
+
+**Decisão.** A Api grava em `Fotos:Pasta` (`ArmazenamentoEmDisco`) e o Front.Web serve essa pasta em `/media`, com cache
+de 1 ano (o nome do arquivo é único). Na VPS, a pasta é um volume nos dois contêineres. O banco guarda a URL relativa
+(`/media/...`): trocar de domínio não exige mexer nele. Só o banco continua no Supabase.
+
+**Consequências.**
+- ✅ Sem Storage externo, chave `service_role` nem limite de plano para as fotos; dev e produção usam o mesmo caminho.
+- ⚠️ **O backup das fotos passa a ser nosso:** precisa de cópia automática para fora da VPS (semana 4). Perder a VPS sem
+  essa cópia é perder as fotos.
+- ➖ Fotos enviadas com a Api rodando no computador do dev ficam nesse computador, mesmo com o banco apontando para produção.
+- ➖ O disco da VPS precisa de acompanhamento, e a banda das fotos passa a ser da VPS.

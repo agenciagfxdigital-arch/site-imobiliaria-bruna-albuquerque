@@ -17,13 +17,12 @@ Migração do site + painel da Bruna Albuquerque de Next.js (`C:\dev\GFX\Projeto
 | Semana 3 — Imóveis no site público e telas do Front.Web (site + painel) | ✅ |
 | Semana 4 — Docker/Caddy, comparação visual, teste com a Meta, troca de DNS | ⏳ próxima |
 
-Testes: 242 de unidade (`Testes`) e 30 de integração (`Testes.Integracao`, Postgres descartável no Docker).
+Testes: 242 de unidade (`Testes`) e 37 de integração (`Testes.Integracao`, Postgres descartável no Docker).
 Build das duas solutions sem avisos.
 
 ## O que não foi feito (de propósito ou por regra)
 
 - **Migrations não aplicadas** em nenhum banco: `Inicial` e `ConteudoDoSite` (ver `docs/MIGRATIONS.md`). Quem aplica é o dev.
-- **Commits:** a semana 3 (site público, painel, consultas públicas de imóveis) está sem commit (o dev faz).
 - Fase 2 do agente de IA (buscar imóveis, organizar fotos etc.) não portada; a fase 1 não usa.
 - Script de simulação do WhatsApp sem a Meta (o `whatsapp:simular` do Next): hoje o modo simulado só escreve no log.
 - Métricas do início do painel (consultas sobre `events`).
@@ -37,9 +36,10 @@ Build das duas solutions sem avisos.
 
 ## Próximo passo (semana 4)
 
-1. Dockerfile da Api e do Front, `compose.yaml` com Caddy (só o Front e o webhook expostos; forwarded headers ligados).
+1. Dockerfile da Api e do Front, `compose.yaml` com Caddy (só o Front e o webhook expostos; forwarded headers ligados),
+   volume `/dados/fotos` nos dois contêineres e backup automático das fotos para fora da VPS (ADR-010).
 2. Comparação visual página a página com o site em Next (as telas foram conferidas com dados de exemplo; falta com as
-   fotos reais do Storage).
+   fotos reais).
 3. Teste do WhatsApp com a Meta, revisão de segurança, aprovação da Bruna (incluindo o trecho novo da privacidade).
 4. Pendências antigas: métricas do início do painel (consultas sobre `events`), simulação do WhatsApp por script,
    fase 2 do agente de IA.

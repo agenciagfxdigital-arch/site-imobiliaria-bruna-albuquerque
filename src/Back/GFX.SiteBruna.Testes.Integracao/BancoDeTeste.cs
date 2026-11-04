@@ -5,6 +5,8 @@ using GFX.SiteBruna.Dados.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Hosting.Internal;
 using Testcontainers.PostgreSql;
 
 namespace GFX.SiteBruna.Testes.Integracao;
@@ -27,14 +29,15 @@ public sealed class BancoDeTeste : IAsyncLifetime
         await _container.StartAsync();
         var configuracao = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
         {
-            ["ConnectionStrings:DefaultConnection"] = _container.GetConnectionString(),
+            ["ConnectionStrings:SiteBruna"] = _container.GetConnectionString(),
             ["WhatsApp:Modo"] = "simulado",
             ["Site:UrlPublica"] = "https://site.teste",
-            ["Jwt:Key"] = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(48)),
+            ["JwtDoSite:Key"] = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(48)),
         }).Build();
 
         var services = new ServiceCollection();
         services.AddLogging();
+        services.AddSingleton<IHostEnvironment>(new HostingEnvironment());
         services.AddAplicacao();
         services.AddDados(configuracao);
         services.AddSingleton<ICanalWhatsapp>(Canal);

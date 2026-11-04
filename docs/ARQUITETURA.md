@@ -56,7 +56,7 @@ dependência, não o teste.
 
 ### `Dados`
 - `AppDbContext` (snake_case, mesmas tabelas do site em Next), `Configurations/`, `Repositories/`, `UnitOfWork`.
-- Clientes externos: Supabase Storage (fotos), Cloud API do WhatsApp, processamento de imagem.
+- Fotos em disco (`Fotos:Pasta`, ADR-010), cliente externo da Cloud API do WhatsApp, processamento de imagem.
 - Tudo `internal`, exceto `DependencyInjection` (`AddDados`) e `VerificacaoBanco`.
 
 ### `Api`
