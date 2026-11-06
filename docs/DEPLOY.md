@@ -51,8 +51,8 @@ cp deploy/.env.example deploy/.env
 nano deploy/.env
 ```
 
-**2. Teste antes num subdomínio.** Crie um registro DNS `A` de `novo.brunaalbuquerque.com.br` para o IP da VPS e use, no
-`.env`, `DOMINIO=novo.brunaalbuquerque.com.br`. Em `DOMINIO_SEM_WWW` e `DOMINIO_ADMIN`, use outros subdomínios que apontem para
+**2. Teste antes num subdomínio.** Crie um registro DNS `A` de `novo.brunacorretora.com` para o IP da VPS e use, no
+`.env`, `DOMINIO=novo.brunacorretora.com`. Em `DOMINIO_SEM_WWW` e `DOMINIO_ADMIN`, use outros subdomínios que apontem para
 a VPS. O Caddy só consegue certificado de endereços que já apontam para ela.
 
 **3. Suba.**
