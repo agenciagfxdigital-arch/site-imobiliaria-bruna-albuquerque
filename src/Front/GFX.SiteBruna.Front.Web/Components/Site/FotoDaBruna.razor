@@ -1,10 +1,12 @@
-@* Foto da Bruna (enviada pelo painel). Enquanto não houver foto, mostra um retrato provisório. *@
-<img src="@(string.IsNullOrEmpty(Url) ? "/bruna.svg" : Url)" alt="Bruna Albuquerque, corretora de imóveis em Videira"
+@* Foto da Bruna: a enviada pelo painel ou, se não houver, a foto padrão do site. *@
+<img src="@(string.IsNullOrEmpty(Url) ? Padrao : Url)" alt="Bruna Albuquerque, corretora de imóveis em Videira"
      loading="@(Prioridade ? "eager" : "lazy")" fetchpriority="@(Prioridade ? "high" : "auto")" decoding="async"
      class="absolute inset-0 size-full @Classe" />
 
 @code {
     [Parameter] public string? Url { get; set; }
+    /// <summary>Usada quando <see cref="Url"/> está vazia; em espaços pequenos, passe o recorte do rosto.</summary>
+    [Parameter] public string Padrao { get; set; } = "/bruna.webp";
     [Parameter] public bool Prioridade { get; set; }
     [Parameter] public string Classe { get; set; } = "object-cover";
 }
