@@ -109,7 +109,8 @@ Negação por padrão: toda rota exige o token do painel, exceto as marcadas com
 | `/swagger` (e `/` redireciona para lá) | só em Development | Documentação e testes das rotas; o token vai em "Authorize" |
 
 Rotas do Front.Web além das páginas: `GET /sitemap.xml`, `GET /robots.txt`, `POST /eventos` (repassa à Api) e
-`POST /_cache/invalidar` (só com a chave). As fotos ficam em `GET /media/...`. O painel fica em `/admin` (login em `/admin/entrar`).
+`POST /_cache/invalidar` (só com a chave). As fotos ficam em `GET /media/...`. O painel fica em `/admin` (login em `/admin/entrar`);
+na VPS, o Caddy o entrega no endereço de `DOMINIO_ADMIN` (`docs/DEPLOY.md`).
 
 Na VPS, só o Front.Web e o webhook ficam expostos pelo Caddy; as demais rotas da Api são chamadas pelo Front na rede
 interna do Docker (como no sistema interno, ADR-027 de lá). Atrás do proxy, ligue

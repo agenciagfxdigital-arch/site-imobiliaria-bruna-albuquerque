@@ -11,7 +11,10 @@ o dev executar. Segredos só no `deploy/.env` da VPS, que fica fora do git.
 | Endereço | Quem atende | Acesso |
 |---|---|---|
 | `https://<DOMINIO>/` | Caddy → Front.Web | Público |
-| `https://<DOMINIO>/admin` | Caddy → Front.Web (WebSocket do Blazor) | Login do painel |
+| `https://<DOMINIO_ADMIN>/admin` | Caddy → Front.Web (WebSocket do Blazor) | Login do painel, fora dos buscadores |
+| `https://<DOMINIO_ADMIN>/` | Caddy | Redireciona para `/admin` |
+| `https://<DOMINIO_ADMIN>/imovel/...` | Caddy | Redireciona para o `DOMINIO` (links "ver no site") |
+| `https://<DOMINIO>/admin` | Caddy | Redireciona para o `DOMINIO_ADMIN` |
 | `https://<DOMINIO>/media/...` | Caddy → Front.Web (volume `fotos`) | Público, cache de 1 ano |
 | `https://<DOMINIO>/api/whatsapp/webhook` | Caddy → Api | Assinatura da Meta |
 | `https://<DOMINIO_SEM_WWW>/...` | Caddy | Redireciona para o `DOMINIO` |
@@ -49,8 +52,8 @@ nano deploy/.env
 ```
 
 **2. Teste antes num subdomínio.** Crie um registro DNS `A` de `novo.brunaalbuquerque.com.br` para o IP da VPS e use, no
-`.env`, `DOMINIO=novo.brunaalbuquerque.com.br`. Em `DOMINIO_SEM_WWW`, use outro subdomínio que aponte para a VPS. O Caddy só
-consegue certificado de endereços que já apontam para ela.
+`.env`, `DOMINIO=novo.brunaalbuquerque.com.br`. Em `DOMINIO_SEM_WWW` e `DOMINIO_ADMIN`, use outros subdomínios que apontem para
+a VPS. O Caddy só consegue certificado de endereços que já apontam para ela.
 
 **3. Suba.**
 
@@ -76,7 +79,7 @@ docker compose run --rm api criar-usuario email@dominio "Nome"
 docker compose run --rm api carregar-conteudo-inicial
 ```
 
-**5. Confira:** site, `/admin`, envio de uma foto e a foto aparecendo no site.
+**5. Confira:** site, painel em `https://<DOMINIO_ADMIN>`, envio de uma foto e a foto aparecendo no site.
 
 ## Backup das fotos
 
@@ -115,8 +118,8 @@ O backup do banco é o do Supabase: confira o que o plano contratado oferece.
 
 ## Troca do DNS
 
-1. Com o subdomínio aprovado, ajuste `DOMINIO` e `DOMINIO_SEM_WWW` no `.env`.
-2. Aponte `www` e o domínio raiz para o IP da VPS.
+1. Com o subdomínio aprovado, ajuste `DOMINIO`, `DOMINIO_SEM_WWW` e `DOMINIO_ADMIN` no `.env`.
+2. Aponte `www`, `admin` e o domínio raiz para o IP da VPS.
 3. Rode `docker compose up -d`, confira o HTTPS e envie `https://<DOMINIO>/sitemap.xml` ao Google Search Console.
 4. Se os imóveis foram cadastrados pelo subdomínio, nada muda: as fotos usam endereço relativo.
 

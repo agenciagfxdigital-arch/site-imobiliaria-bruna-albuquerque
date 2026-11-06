@@ -12,6 +12,12 @@
 		respond 404
 	}
 
+	# O painel tem endereço próprio
+	@painel path /admin /admin/*
+	handle @painel {
+		redir https://{$DOMINIO_ADMIN}{uri} 302
+	}
+
 	handle {
 		reverse_proxy front:8080
 	}
@@ -19,4 +25,33 @@
 
 {$DOMINIO_SEM_WWW} {
 	redir https://{$DOMINIO}{uri} permanent
+}
+
+# Painel. É o mesmo Front.Web: além de /admin, ele precisa do WebSocket do Blazor, dos arquivos estáticos e das fotos
+{$DOMINIO_ADMIN} {
+	encode zstd gzip
+
+	# Fora dos buscadores; defer para substituir o cabeçalho que o Front já manda em /admin
+	header {
+		defer
+		X-Robots-Tag "noindex, nofollow"
+	}
+
+	handle /_cache/* {
+		respond 404
+	}
+
+	@raiz path /
+	handle @raiz {
+		redir /admin 302
+	}
+
+	# Os links "ver no site" do painel são relativos
+	handle /imovel/* {
+		redir https://{$DOMINIO}{uri} 302
+	}
+
+	handle {
+		reverse_proxy front:8080
+	}
 }

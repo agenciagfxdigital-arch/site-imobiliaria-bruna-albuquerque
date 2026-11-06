@@ -22,6 +22,7 @@ services:
     environment:
       DOMINIO: ${DOMINIO:?defina DOMINIO no .env}
       DOMINIO_SEM_WWW: ${DOMINIO_SEM_WWW:?defina DOMINIO_SEM_WWW no .env}
+      DOMINIO_ADMIN: ${DOMINIO_ADMIN:?defina DOMINIO_ADMIN no .env}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       # Certificados HTTPS: sem o volume, cada subida pede certificado novo e esbarra no limite do Let's Encrypt
