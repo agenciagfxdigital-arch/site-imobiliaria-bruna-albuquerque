@@ -40,6 +40,11 @@
 
     <Secao Titulo="Bairros">
         <p class="text-sm text-navy-600">Usados nos filtros do site e no mapa (região aproximada) da página do imóvel.</p>
+        <div class="flex gap-2">
+            <input class="field" placeholder="Novo bairro" @bind="NovoBairro" />
+            <button type="button" class="btn-outline min-h-12 px-4 text-sm" disabled="@Ocupado" @onclick="AdicionarBairro"><Icone Nome="plus" Classe="size-4" /> Adicionar</button>
+        </div>
+        <Mensagem Erro="@ErroDosBairros" Sucesso="@AvisoDosBairros" />
         <ul class="divide-y divide-navy-100">
             @foreach (var b in Bairros)
             {
@@ -52,11 +57,6 @@
                 </li>
             }
         </ul>
-        <div class="flex gap-2">
-            <input class="field" placeholder="Novo bairro" @bind="NovoBairro" />
-            <button type="button" class="btn-outline min-h-12 px-4 text-sm" disabled="@Ocupado" @onclick="AdicionarBairro"><Icone Nome="plus" Classe="size-4" /> Adicionar</button>
-        </div>
-        <Mensagem Erro="@ErroDosBairros" Sucesso="@AvisoDosBairros" />
     </Secao>
 
     <Secao Titulo="Quem acessa o painel">
