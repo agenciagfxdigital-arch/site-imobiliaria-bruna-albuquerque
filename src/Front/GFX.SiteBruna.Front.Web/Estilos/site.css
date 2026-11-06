@@ -67,6 +67,10 @@
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-gold-500;
   }
+  /* O Blazor foca o título a cada navegação (leitor de tela): esse foco não vem do teclado e não precisa de contorno */
+  [tabindex="-1"]:focus-visible {
+    outline: none;
+  }
   /* Elementos que o script do site mostra/esconde */
   [hidden] {
     display: none !important;
