@@ -1,15 +1,25 @@
 @page "/admin"
 @inject ImovelApi Imoveis
+@inject MetricasApi Metricas
+@inject SessaoDoPainel Sessao
 
 <PageTitle>Início | Painel</PageTitle>
 
 <div class="space-y-6">
-    <div>
-        <h1 class="text-2xl font-semibold">Início</h1>
-        <p class="mt-1 text-sm text-navy-600">Resumo dos imóveis. As métricas de visitas e de cliques no WhatsApp vão aparecer aqui.</p>
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+            <h1 class="text-2xl font-semibold">@Saudacao</h1>
+            <p class="text-sm text-navy-500">Veja como o site está indo no período.</p>
+        </div>
+        <EscolhaDoPeriodo Periodo="Periodo" AoEscolher="MudarPeriodo" />
     </div>
 
     <Mensagem Erro="@Erro" />
+
+    @if (Numeros is not null)
+    {
+        <MetricasDoSite Dados="Numeros" />
+    }
 
     @if (Lista is not null)
     {
@@ -53,12 +63,30 @@
 
 @code {
     private List<ImovelResumoResponse>? Lista { get; set; }
+    private MetricasResponse? Numeros { get; set; }
+    private PeriodoEscolhido Periodo { get; set; } = new(30);
+    private string Saudacao { get; set; } = "Olá!";
     private string? Erro { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
+        if (await Sessao.ObterSessao() is { } sessao) Saudacao = $"Olá, {sessao.Usuario.Nome.Split(' ')[0]} 👋";
+        await CarregarMetricas();
         var resposta = await Imoveis.Listar(null, null, null);
         if (resposta.Sucesso) Lista = resposta.Dados;
+        else Erro = string.Join(" ", resposta.Mensagens);
+    }
+
+    private Task MudarPeriodo(PeriodoEscolhido periodo)
+    {
+        Periodo = periodo;
+        return CarregarMetricas();
+    }
+
+    private async Task CarregarMetricas()
+    {
+        var resposta = await Metricas.Obter(Periodo);
+        if (resposta.Sucesso) (Numeros, Erro) = (resposta.Dados, null);
         else Erro = string.Join(" ", resposta.Mensagens);
     }
 

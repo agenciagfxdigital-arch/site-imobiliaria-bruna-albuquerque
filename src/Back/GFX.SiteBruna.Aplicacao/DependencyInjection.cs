@@ -19,6 +19,9 @@ public static class DependencyInjection
         services.AddScoped<BairroService>();
         services.AddScoped<EventoService>();
         services.AddScoped<UsuarioService>();
+        services.AddScoped<OperadorService>();
+        services.AddScoped<MetricasService>();
+        services.AddScoped<ConteudoInicialService>();
         services.AddScoped<IntegracaoService>();
         // Construtor internal: a Api recebe o assistente pronto, mas não monta nem chama a integração por fora.
         services.AddScoped(sp => new AssistenteService(

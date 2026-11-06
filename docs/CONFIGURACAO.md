@@ -16,6 +16,7 @@ em produção, variáveis de ambiente (`Secao__Chave`, com dois sublinhados).
 | `WhatsApp:Modo` | não | `meta` ou `simulado` (nada vai para a Meta; respostas no log) |
 | `WhatsApp:Token`, `WhatsApp:PhoneNumberId` | sim / não | Cloud API da Meta |
 | `WhatsApp:AppSecret`, `WhatsApp:VerifyToken` | sim | Conferência do webhook (16+ caracteres) |
+| `WhatsApp:UrlDaSimulacao` | não | Só o comando `simular-whatsapp`. Padrão `http://localhost:5130/` |
 | `Site:UrlPublica` | não | Links que o assistente manda para a Bruna |
 | `Site:UrlInternaDoFront`, `Site:ChaveDoCache` | não / sim | Avisar o front para refazer o cache |
 
@@ -37,6 +38,7 @@ dotnet user-secrets set "ConnectionStrings:SiteBruna" "Host=localhost;Port=5432;
 | `Site:ChaveDoCache` | sim | A mesma do `Site:ChaveDoCache` da Api |
 | `Site:CacheEmMinutos` | não | Cache das páginas do site (padrão 5; 0 desliga) |
 | `Fotos:Pasta` | não | A mesma da Api: o Front serve essa pasta em `/media` |
+| `DataProtection:PastaDasChaves` | não | Chaves que criptografam a sessão do painel. Padrão `/dados/chaves` (volume na VPS: sem ele, cada deploy desconecta quem está no painel); vazio em desenvolvimento |
 
 Em desenvolvimento o Front roda em `http://localhost:5000` (o mesmo `Site:UrlPublica` e `Site:UrlInternaDoFront` do
 `appsettings.Development.json` da Api). Para testar a invalidação do cache, use a mesma chave nos dois:
@@ -61,6 +63,29 @@ dotnet run --project src/Back/GFX.SiteBruna.Api -- criar-usuario email@dominio "
 
 A senha é pedida no terminal (sem aparecer na tela). Os próximos usuários podem ser criados pelo painel.
 
+## Conteúdo inicial
+
+Depois das migrations, uma vez, para preencher bairros, perguntas frequentes e depoimentos. Lista que já tem cadastro fica
+como está, então pode rodar de novo sem duplicar:
+
+```bash
+dotnet run --project src/Back/GFX.SiteBruna.Api -- carregar-conteudo-inicial
+```
+
+## Assistente do WhatsApp
+
+Quem pode usar o assistente é autorizado no painel, em Configurações → Assistente do WhatsApp.
+
+Para testar sem a Meta, ligue `WhatsApp:Habilitado=true` e grave `WhatsApp:AppSecret` e `WhatsApp:VerifyToken` nos user
+secrets (16+ caracteres; o modo `simulado` já vem no `appsettings.Development.json`). Com a Api rodando, em outro terminal:
+
+```bash
+dotnet run --no-build --project src/Back/GFX.SiteBruna.Api -- simular-whatsapp 5549999999999 texto ficha
+```
+
+Outros formatos: `arquivo ficha.txt`, `fotos 3 [legenda]` e `botao <id>`. A rota de leitura da resposta só existe no modo
+simulado e fora de produção.
+
 ## Rotas
 
 Negação por padrão: toda rota exige o token do painel, exceto as marcadas como públicas.
@@ -71,6 +96,8 @@ Negação por padrão: toda rota exige o token do painel, exceto as marcadas com
 | `GET /api/Auth/eu`, `POST /api/Auth/trocar-senha` | painel | |
 | `/api/Imovel` (listar, obter, salvar, fotos, status, destaque, duplicar, excluir) | painel | Inclui proprietário e endereço exato |
 | `POST /api/Imagem` | painel | Upload (formato pelos bytes, WebP, sem EXIF/GPS) |
+| `GET /api/Metricas?dias=7\|30\|90` ou `?de=&ate=` | painel | Números do início do painel |
+| `GET/POST /api/Operador` | painel | Telefones autorizados no assistente do WhatsApp |
 | `/api/Conteudo`, `/api/Faq`, `/api/Depoimento`, `/api/Bairro`, `/api/Usuario` | painel | |
 | `GET /api/Site/...` (configurações, páginas, FAQ, depoimentos, bairros) | pública | Sem dado interno |
 | `GET /api/Site/imoveis` (filtros na query), `/imoveis/destaques`, `/imoveis/aluguel`, `/imoveis/mcmv` | pública | Cartões, sem dado interno |

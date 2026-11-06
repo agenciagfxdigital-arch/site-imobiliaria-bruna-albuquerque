@@ -57,6 +57,7 @@ public static class DependencyInjection
         services.AddScoped<IDepoimentoRepository, DepoimentoRepository>();
         services.AddScoped<IEventoRepository, EventoRepository>();
         services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+        services.AddScoped<IMetricasRepository, MetricasRepository>();
 
         services.AddSingleton<IHasherSenha, HasherSenha>();
         services.AddSingleton<ITokenService>(sp => new TokenService(configuration, sp.GetRequiredService<IRelogio>()));
@@ -69,6 +70,7 @@ public static class DependencyInjection
 
         services.AddHttpClient<CanalMeta>(c => c.Timeout = TimeSpan.FromSeconds(30));
         services.AddSingleton<CanalSimulado>();
+        services.AddSingleton<ISaidaDoWhatsappSimulado>(sp => sp.GetRequiredService<CanalSimulado>());
         services.AddScoped<ICanalWhatsapp>(sp => sp.GetRequiredService<IOptions<OpcoesDoWhatsapp>>().Value.Simulado
             ? sp.GetRequiredService<CanalSimulado>()
             : sp.GetRequiredService<CanalMeta>());

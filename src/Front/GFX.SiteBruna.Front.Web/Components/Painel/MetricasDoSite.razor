@@ -1,0 +1,84 @@
+@* Como o site está indo no período. *@
+<div class="grid gap-3 sm:grid-cols-3">
+    <CartaoDeIndicador Rotulo="Visitantes" Indicador="Dados.Visitantes" />
+    <CartaoDeIndicador Rotulo="Imóveis vistos" Indicador="Dados.VisualizacoesDeImoveis" />
+    <CartaoDeIndicador Rotulo="Cliques no WhatsApp" Indicador="Dados.CliquesNoWhatsapp" />
+</div>
+
+<section class="card p-5">
+    <h2 class="mb-4 font-semibold text-navy-900">Cliques no WhatsApp por dia</h2>
+    <BarrasPorDia Dias="Dados.CliquesPorDia" Rotulo="Cliques no WhatsApp" />
+</section>
+
+<section class="card p-5">
+    <h2 class="mb-4 font-semibold text-navy-900">Imóveis mais vistos e taxa de interesse</h2>
+    <p class="-mt-2 mb-4 text-xs text-navy-500">
+        Taxa de interesse = cliques no WhatsApp ÷ visualizações. Mostra quais imóveis convertem e quais só recebem visitas.
+    </p>
+    @if (Dados.Imoveis.Count == 0)
+    {
+        <p class="py-4 text-sm text-navy-400">Ainda não há visualizações de imóveis neste período.</p>
+    }
+    else
+    {
+        <ul class="divide-y divide-navy-100">
+            @foreach (var (imovel, indice) in Dados.Imoveis.Select((imovel, indice) => (imovel, indice)))
+            {
+                <li class="flex items-center gap-3 py-3">
+                    <span class="w-5 shrink-0 text-center text-sm font-semibold text-navy-400 tabular-nums">@(indice + 1)</span>
+                    <div class="relative size-12 shrink-0 overflow-hidden rounded-lg bg-navy-100">
+                        @if (imovel.CapaUrl is { } capa)
+                        {
+                            <img src="@capa" alt="" class="absolute inset-0 size-full object-cover" />
+                        }
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <a href="@($"/admin/imoveis/{imovel.Id}")" class="block truncate text-sm font-medium hover:underline">@imovel.Titulo</a>
+                        <p class="text-xs text-navy-500">
+                            @imovel.Codigo · <a href="@imovel.Caminho" target="_blank" class="underline-offset-2 hover:underline">ver no site</a>
+                        </p>
+                    </div>
+                    <dl class="grid shrink-0 grid-cols-3 gap-3 text-right text-xs sm:gap-6">
+                        <div>
+                            <dt class="text-navy-400">Visitas</dt>
+                            <dd class="text-sm font-semibold tabular-nums">@imovel.Visualizacoes</dd>
+                        </div>
+                        <div>
+                            <dt class="text-navy-400">WhatsApp</dt>
+                            <dd class="text-sm font-semibold tabular-nums">@imovel.CliquesNoWhatsapp</dd>
+                        </div>
+                        <div>
+                            <dt class="text-navy-400">Interesse</dt>
+                            <dd class="@($"text-sm font-semibold tabular-nums {(imovel.TaxaDeInteresse >= 10 ? "text-emerald-700" : "text-navy-700")}")">@imovel.TaxaDeInteresse%</dd>
+                        </div>
+                    </dl>
+                </li>
+            }
+        </ul>
+    }
+</section>
+
+<div>
+    <h2 class="text-lg font-semibold">O que o público procura</h2>
+    <p class="text-sm text-navy-500">
+        Baseado nos filtros usados no site@(Dados.BuscasDeCompra + Dados.BuscasDeAluguel > 0 ? $" ({Dados.BuscasDeCompra} buscas de compra, {Dados.BuscasDeAluguel} de aluguel)" : "").
+    </p>
+    <div class="mt-4 grid gap-6 md:grid-cols-3">
+        <section class="card p-5">
+            <h3 class="mb-4 font-semibold text-navy-900">Bairros</h3>
+            <BarrasHorizontais Itens="Dados.Bairros" />
+        </section>
+        <section class="card p-5">
+            <h3 class="mb-4 font-semibold text-navy-900">Tipos de imóvel</h3>
+            <BarrasHorizontais Itens="Dados.Tipos" />
+        </section>
+        <section class="card p-5">
+            <h3 class="mb-4 font-semibold text-navy-900">Faixas de preço</h3>
+            <BarrasHorizontais Itens="Dados.Faixas" />
+        </section>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public MetricasResponse Dados { get; set; } = null!;
+}

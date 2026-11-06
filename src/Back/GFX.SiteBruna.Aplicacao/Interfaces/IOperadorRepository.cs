@@ -7,6 +7,9 @@ public interface IOperadorRepository
     /// <summary>Rastreado. O telefone chega normalizado.</summary>
     Task<Operador?> GetByTelefone(string telefone);
 
+    /// <summary>Em ordem alfabética, sem rastrear.</summary>
+    Task<IReadOnlyList<Operador>> GetAll();
+
     void Add(Operador operador);
 
     /// <summary>

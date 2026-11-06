@@ -2,7 +2,8 @@
 
 Migração para .NET 10 do site + painel da corretora Bruna Albuquerque (Videira/SC). O original em Next.js fica em
 `C:\dev\GFX\ProjetoSiteImoveisBrunaAlbuquerque` e é a referência de regras, textos e testes.
-Leia `docs/ARQUITETURA.md`, `docs/DECISOES.md`, `docs/PLANO-MIGRACAO.md` e `docs/CONFIGURACAO.md` (chaves, rotas, primeiro usuário).
+Leia `docs/ARQUITETURA.md`, `docs/DECISOES.md`, `docs/PLANO-MIGRACAO.md`, `docs/CONFIGURACAO.md` (chaves, rotas, primeiro usuário)
+e `docs/DEPLOY.md` (VPS, Docker e Caddy).
 
 ## Regras do desenvolvedor (obrigatórias)
 

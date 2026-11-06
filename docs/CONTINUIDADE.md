@@ -15,17 +15,16 @@ Migração do site + painel da Bruna Albuquerque de Next.js (`C:\dev\GFX\Projeto
 | Semana 2 — Conteúdo (configurações, páginas, FAQ, depoimentos, bairros), eventos, usuários | ✅ |
 | Semana 2 — Api (login JWT, controllers, webhook, `criar-usuario`) | ✅ |
 | Semana 3 — Imóveis no site público e telas do Front.Web (site + painel) | ✅ |
-| Semana 4 — Docker/Caddy, comparação visual, teste com a Meta, troca de DNS | ⏳ próxima |
+| Semana 4 — Docker/Caddy e guia de deploy | ✅ testados localmente |
+| Semana 4 — VPS, comparação visual, teste com a Meta, troca de DNS | ⏳ próxima |
 
-Testes: 242 de unidade (`Testes`) e 37 de integração (`Testes.Integracao`, Postgres descartável no Docker).
+Testes: 258 de unidade (`Testes`) e 45 de integração (`Testes.Integracao`, Postgres descartável no Docker).
 Build das duas solutions sem avisos.
 
 ## O que não foi feito (de propósito ou por regra)
 
 - **Migrations não aplicadas** em nenhum banco: `Inicial` e `ConteudoDoSite` (ver `docs/MIGRATIONS.md`). Quem aplica é o dev.
 - Fase 2 do agente de IA (buscar imóveis, organizar fotos etc.) não portada; a fase 1 não usa.
-- Script de simulação do WhatsApp sem a Meta (o `whatsapp:simular` do Next): hoje o modo simulado só escreve no log.
-- Métricas do início do painel (consultas sobre `events`).
 
 ## Como rodar tudo localmente
 
@@ -36,13 +35,11 @@ Build das duas solutions sem avisos.
 
 ## Próximo passo (semana 4)
 
-1. Dockerfile da Api e do Front, `compose.yaml` com Caddy (só o Front e o webhook expostos; forwarded headers ligados),
-   volume `/dados/fotos` nos dois contêineres e backup automático das fotos para fora da VPS (ADR-010).
+1. Primeira subida na VPS, num subdomínio, e backup das fotos com destino definido (`docs/DEPLOY.md`).
 2. Comparação visual página a página com o site em Next (as telas foram conferidas com dados de exemplo; falta com as
    fotos reais).
 3. Teste do WhatsApp com a Meta, revisão de segurança, aprovação da Bruna (incluindo o trecho novo da privacidade).
-4. Pendências antigas: métricas do início do painel (consultas sobre `events`), simulação do WhatsApp por script,
-   fase 2 do agente de IA.
+4. Evolução depois da entrega: fase 2 do agente de IA.
 
 ## Regras que valem sempre
 

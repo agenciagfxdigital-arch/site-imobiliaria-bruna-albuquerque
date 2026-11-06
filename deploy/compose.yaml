@@ -1,0 +1,86 @@
+# Produção na VPS (docs/DEPLOY.md). O banco fica no Supabase; os segredos, no .env ao lado deste arquivo (fora do git).
+# Só o Caddy tem porta aberta: a Api não é alcançável pela internet, exceto o webhook do WhatsApp.
+name: bruna
+
+x-logs: &logs
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "5"
+
+services:
+  caddy:
+    image: caddy:2.10
+    restart: unless-stopped
+    depends_on:
+      - front
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      DOMINIO: ${DOMINIO:?defina DOMINIO no .env}
+      DOMINIO_SEM_WWW: ${DOMINIO_SEM_WWW:?defina DOMINIO_SEM_WWW no .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # Certificados HTTPS: sem o volume, cada subida pede certificado novo e esbarra no limite do Let's Encrypt
+      - caddy-dados:/data
+      - caddy-config:/config
+    <<: *logs
+
+  api:
+    image: bruna-api:${VERSAO:-local}
+    build:
+      context: ..
+      dockerfile: src/Back/GFX.SiteBruna.Api/Dockerfile
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      # Só o Front e o Caddy alcançam a Api: confiar no X-Forwarded-For deles é seguro (limites por IP)
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      ConnectionStrings__SiteBruna: ${CONEXAO_BANCO:?defina CONEXAO_BANCO no .env}
+      JwtDoSite__Key: ${JWT_KEY:?defina JWT_KEY no .env}
+      Site__UrlPublica: https://${DOMINIO}
+      Site__UrlInternaDoFront: http://front:8080
+      Site__ChaveDoCache: ${CHAVE_DO_CACHE:?defina CHAVE_DO_CACHE no .env}
+      WhatsApp__Habilitado: ${WHATSAPP_HABILITADO:-false}
+      WhatsApp__Modo: ${WHATSAPP_MODO:-meta}
+      WhatsApp__Token: ${WHATSAPP_TOKEN:-}
+      WhatsApp__PhoneNumberId: ${WHATSAPP_PHONE_NUMBER_ID:-}
+      WhatsApp__AppSecret: ${WHATSAPP_APP_SECRET:-}
+      WhatsApp__VerifyToken: ${WHATSAPP_VERIFY_TOKEN:-}
+      TZ: America/Sao_Paulo
+    volumes:
+      # Fotos dos imóveis (ADR-010): perder = perder as fotos. Backup em deploy/backup-fotos.sh
+      - fotos:/dados/fotos
+    <<: *logs
+
+  front:
+    image: bruna-front:${VERSAO:-local}
+    build:
+      context: ..
+      dockerfile: src/Front/GFX.SiteBruna.Front.Web/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      # Só o Caddy alcança o Front: confiar no X-Forwarded-* dele é seguro
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      Api__UrlBase: http://api:8080/
+      Site__UrlPublica: https://${DOMINIO}
+      Site__ChaveDoCache: ${CHAVE_DO_CACHE}
+      TZ: America/Sao_Paulo
+    volumes:
+      # Só leitura: quem grava as fotos é a Api
+      - fotos:/dados/fotos:ro
+      # Chaves da sessão do painel: sem o volume, cada deploy desconecta quem está logado
+      - chaves-front:/dados/chaves
+    <<: *logs
+
+volumes:
+  caddy-dados:
+  caddy-config:
+  fotos:
+  chaves-front:

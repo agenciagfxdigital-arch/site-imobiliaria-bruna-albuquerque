@@ -69,6 +69,7 @@ public sealed class Mundo : IUnitOfWork, IRelogio, IEspera, ICacheDoSite, IArmaz
         Assistente = new AssistenteService(Integracao, this, Fila, Operadores, this, this, this, NullLogger<AssistenteService>.Instance);
         ImagemService = imagens;
         ImovelDoSite = new ImovelDoSiteService(DoSite, Fotos, Bairros, Configuracoes, this);
+        OperadorService = new OperadorService(Operadores, this, this);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -80,6 +81,7 @@ public sealed class Mundo : IUnitOfWork, IRelogio, IEspera, ICacheDoSite, IArmaz
     internal IntegracaoService Integracao { get; }
     public AssistenteService Assistente { get; }
     public ImovelDoSiteService ImovelDoSite { get; }
+    public OperadorService OperadorService { get; }
 
     public IImovelRepository Imoveis => new RepositorioDeImoveis(this);
     public IFotoRepository Fotos => new RepositorioDeFotos(this);
@@ -496,6 +498,9 @@ public sealed class Mundo : IUnitOfWork, IRelogio, IEspera, ICacheDoSite, IArmaz
     {
         public Task<Operador?> GetByTelefone(string telefone) =>
             Task.FromResult(m._operadores.Values.FirstOrDefault(o => o.Telefone == telefone) is { } o ? m.Rastrear(o.Id, m._operadores) : null);
+
+        public Task<IReadOnlyList<Operador>> GetAll() =>
+            Task.FromResult<IReadOnlyList<Operador>>([.. m._operadores.Values.OrderBy(o => o.Nome)]);
 
         public void Add(Operador operador) => m.Incluir(operador.Id, operador);
 

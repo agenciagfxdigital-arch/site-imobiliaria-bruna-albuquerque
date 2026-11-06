@@ -16,7 +16,7 @@ em xUnit.
 - [x] Casos de uso + mundo em memória para testes (`aplicacao/*.ts`, `__testes__/mundo.ts`) →
   `ImovelService`, `ImagemService`, `IntegracaoService` (internal), `AssistenteService`, `Testes/Aplicacao/Mundo.cs`
 - [ ] Fase 2 (agente de IA), não portado: `buscarImoveis`, `obterImovel` completo, `listarOpcoes`, `organizarFotos`,
-  `verificarOperador`. A fase 1 (assistente sem IA) não usa; entram junto com o agente.
+  `verificarOperador`. No Next também só existem nos testes, sem nenhuma tela ou rota usando: entram junto com o agente.
 
 ### Diferenças em relação ao original (intencionais)
 
@@ -53,15 +53,17 @@ em xUnit.
   ponta a ponta
 - [x] Módulos de conteúdo (configurações, páginas, FAQ, depoimentos, bairros), eventos e usuários do painel:
   Modelo, Aplicacao, Dados, migration `ConteudoDoSite` (não aplicada) e testes
-- [ ] Métricas do início do painel (cliques no WhatsApp, visualizações por imóvel): consultas sobre `events`
+- [x] Métricas do início do painel (cliques no WhatsApp, imóveis mais vistos, filtros usados), com período e comparação
 - [x] Api: login com JWT (desativado perde o acesso na hora), negação por padrão, controllers do painel e do site,
   webhook do WhatsApp (assinatura no corpo bruto, processamento em segundo plano), limites por IP, comando
   `criar-usuario` (ver `docs/CONFIGURACAO.md`)
 - [x] Imóveis no site público (lista com filtros, página do imóvel, destaques, aluguel, sitemap)
-- [ ] Simulação do WhatsApp sem a Meta por script (`whatsapp:simular` do site em Next) — hoje o modo simulado só
-  escreve as respostas no log
+- [x] Simulação do WhatsApp sem a Meta: comando `simular-whatsapp`
+- [x] Cadastro de operadores no painel (no Next era o script `operador:criar`)
+- [x] Conteúdo inicial: comando `carregar-conteudo-inicial` (bairros, FAQ e depoimentos reais)
+- [x] Cabeçalhos de segurança, `noindex` no `/admin` e chaves do Data Protection em pasta própria
 - [x] Painel: login, imóveis (lista, edição, fotos, prévia), páginas, FAQ, depoimentos, bairros, configurações,
-  usuários e troca de senha. O início mostra o resumo dos imóveis; as métricas continuam pendentes (acima)
+  usuários e troca de senha. O início mostra as métricas e o resumo dos imóveis
 
 ## Semana 3 — Site público
 
@@ -83,8 +85,9 @@ em xUnit.
 
 ## Semana 4 — Entrega
 
-- [ ] Dockerfile da Api e do Front, `compose.yaml` com Caddy (VPS), volume `/dados/fotos` nos dois contêineres
-- [ ] Backup automático das fotos para fora da VPS (ADR-010)
+- [x] Dockerfile da Api e do Front, `compose.yaml` com Caddy, volumes e guia em `docs/DEPLOY.md` (testados localmente)
+- [x] Script de backup das fotos (`deploy/backup-fotos.sh`). Falta escolher o destino e rodar na VPS
+- [ ] Contratar a VPS e fazer a primeira subida
 - [ ] Comparação visual página a página com o site em Next
 - [ ] Teste do WhatsApp com a Meta, revisão de segurança, aprovação da Bruna
 - [ ] Troca de DNS

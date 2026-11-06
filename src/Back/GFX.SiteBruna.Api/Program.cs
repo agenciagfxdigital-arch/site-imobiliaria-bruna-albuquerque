@@ -44,6 +44,8 @@ builder.Services.AddHostedService<ProcessadorDoWhatsapp>();
 var app = builder.Build();
 
 if (args.FirstOrDefault() == CriarUsuario.Nome) return await CriarUsuario.Executar(app.Services, args);
+if (args.FirstOrDefault() == CarregarConteudoInicial.Nome) return await CarregarConteudoInicial.Executar(app.Services);
+if (args.FirstOrDefault() == SimularWhatsapp.Nome) return await SimularWhatsapp.Executar(app.Configuration, args);
 
 app.UseExceptionHandler();
 // Swagger só em desenvolvimento e antes da autenticação: a negação por padrão bloquearia a própria tela com 401

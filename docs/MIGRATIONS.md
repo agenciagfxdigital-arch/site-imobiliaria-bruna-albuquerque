@@ -41,6 +41,6 @@ dotnet ef database update --project src/Back/GFX.SiteBruna.Dados --startup-proje
 
 | `ConteudoDoSite` | `settings` e `pages` (linha única cada; páginas em uma coluna `jsonb` por página), `faqs`, `testimonials`, `events` (uma visualização por visitante por imóvel) e `usuarios` (login do painel, senha só como hash). Só cria tabelas. |
 
-Depois de aplicar em produção: crie o primeiro usuário do painel (comando da Api, na próxima etapa) e cadastre os
-bairros, depoimentos e FAQ pelo painel. Configurações e páginas começam com os valores padrão (WhatsApp, CRECI e
+Depois de aplicar em produção: crie o primeiro usuário do painel (`criar-usuario`) e carregue bairros, depoimentos e FAQ
+com `carregar-conteudo-inicial` (`docs/CONFIGURACAO.md`). Configurações e páginas começam com os valores padrão (WhatsApp, CRECI e
 textos revisados pela Bruna) e só viram linha no banco quando forem salvas.

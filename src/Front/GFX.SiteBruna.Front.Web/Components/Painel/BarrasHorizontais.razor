@@ -1,0 +1,33 @@
+@* Barras para rankings simples (bairros, tipos, faixas de preço). *@
+@if (Itens.Count == 0)
+{
+    <p class="py-4 text-sm text-navy-400">Ainda não há dados neste período.</p>
+}
+else
+{
+    <ul class="space-y-3">
+        @foreach (var item in Itens)
+        {
+            <li>
+                <div class="flex items-baseline justify-between gap-3 text-sm">
+                    <span class="truncate text-navy-800">@item.Valor</span>
+                    <span class="shrink-0 text-navy-500 tabular-nums">
+                        @item.Total <span class="text-xs text-navy-400">(@(item.Total * 100 / Total)%)</span>
+                    </span>
+                </div>
+                <div class="mt-1 h-2 rounded-full bg-navy-50">
+                    <div class="h-2 rounded-full bg-navy-600" style="@Largura(item)"></div>
+                </div>
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<TotalDoFiltro> Itens { get; set; } = [];
+
+    private int Total => Math.Max(1, Itens.Sum(i => i.Total));
+    private int Maximo => Math.Max(1, Itens.Max(i => i.Total));
+
+    private string Largura(TotalDoFiltro item) => FormattableString.Invariant($"width: {item.Total * 100d / Maximo:0.##}%");
+}

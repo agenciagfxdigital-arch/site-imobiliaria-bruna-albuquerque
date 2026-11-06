@@ -1,0 +1,40 @@
+@* Atalhos de 7, 30 e 90 dias, ou um intervalo de datas. *@
+<div class="flex flex-col items-start gap-2 sm:items-end">
+    <div class="inline-flex rounded-full bg-white p-1 shadow-sm ring-1 ring-navy-100">
+        @foreach (var dias in Atalhos)
+        {
+            <button type="button" class="@Classe(Periodo.Dias == dias && !Outro)" @onclick="() => Escolher(dias)">@dias dias</button>
+        }
+        <button type="button" class="@Classe(Outro)" @onclick="() => Outro = true">Outro</button>
+    </div>
+    @if (Outro)
+    {
+        <div class="flex flex-wrap items-center gap-2">
+            <input type="date" aria-label="De" class="field w-auto py-2 text-sm" @bind="De" />
+            <span class="text-sm text-navy-500">até</span>
+            <input type="date" aria-label="Até" class="field w-auto py-2 text-sm" @bind="Ate" />
+            <button type="button" class="btn-primary min-h-10 px-4 text-sm" disabled="@(De is null || Ate is null)" @onclick="EscolherDatas">Ver</button>
+        </div>
+    }
+</div>
+
+@code {
+    private static readonly int[] Atalhos = [7, 30, 90];
+
+    [Parameter, EditorRequired] public PeriodoEscolhido Periodo { get; set; } = null!;
+    [Parameter] public EventCallback<PeriodoEscolhido> AoEscolher { get; set; }
+
+    private bool Outro { get; set; }
+    private DateOnly? De { get; set; }
+    private DateOnly? Ate { get; set; }
+
+    private static string Classe(bool ativo) => $"min-h-9 rounded-full px-3.5 text-sm {(ativo ? "bg-navy-800 text-white" : "text-navy-700")}";
+
+    private Task Escolher(int dias)
+    {
+        Outro = false;
+        return AoEscolher.InvokeAsync(new PeriodoEscolhido(dias));
+    }
+
+    private Task EscolherDatas() => AoEscolher.InvokeAsync(new PeriodoEscolhido(null, De, Ate));
+}

@@ -2,9 +2,11 @@
 **/bin/
 **/obj/
 **/.vs/
+**/node_modules/
 **/*.user
 **/Properties/launchSettings.json
 **/*.local.http
 .git/
+.fotos-locais/
 docs/
 deploy/

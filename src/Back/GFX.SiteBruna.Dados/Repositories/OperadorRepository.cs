@@ -9,6 +9,9 @@ internal sealed class OperadorRepository(AppDbContext context) : IOperadorReposi
 {
     public Task<Operador?> GetByTelefone(string telefone) => context.Operador.FirstOrDefaultAsync(o => o.Telefone == telefone);
 
+    public async Task<IReadOnlyList<Operador>> GetAll() =>
+        await context.Operador.AsNoTracking().OrderBy(o => o.Nome).ToListAsync();
+
     public void Add(Operador operador) => context.Operador.Add(operador);
 
     /// <summary>Mesma condição de <see cref="Operador.PodeSerReservadoPor"/>, num UPDATE atômico.</summary>

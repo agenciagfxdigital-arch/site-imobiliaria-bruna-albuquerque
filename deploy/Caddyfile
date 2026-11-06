@@ -1,0 +1,22 @@
+# HTTPS automático e entrada única do site (docs/DEPLOY.md).
+{$DOMINIO} {
+	encode zstd gzip
+
+	# Só o webhook do WhatsApp chega na Api pela internet
+	handle /api/whatsapp/webhook* {
+		reverse_proxy api:8080
+	}
+
+	# Aviso de conteúdo novo: rota interna, a Api chama o Front direto pela rede do Docker
+	handle /_cache/* {
+		respond 404
+	}
+
+	handle {
+		reverse_proxy front:8080
+	}
+}
+
+{$DOMINIO_SEM_WWW} {
+	redir https://{$DOMINIO}{uri} permanent
+}

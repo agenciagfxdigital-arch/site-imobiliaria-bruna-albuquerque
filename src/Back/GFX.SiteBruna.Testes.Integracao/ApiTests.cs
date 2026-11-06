@@ -41,6 +41,8 @@ public class ApiTests(ApiDeTeste api) : IClassFixture<ApiDeTeste>
     [Theory]
     [InlineData("/api/Imovel")]
     [InlineData("/api/Usuario")]
+    [InlineData("/api/Operador")]
+    [InlineData("/api/Metricas")]
     [InlineData("/api/Auth/eu")]
     public async Task Rotas_do_painel_exigem_login(string rota)
     {
@@ -158,6 +160,27 @@ public class ApiTests(ApiDeTeste api) : IClassFixture<ApiDeTeste>
         var login = await api.Cliente.PostAsJsonAsync("/api/Auth/entrar", new EntrarRequest(email, Senha));
         Assert.Equal(HttpStatusCode.OK, login.StatusCode);
     }
+
+    [Fact]
+    public async Task Painel_cadastra_operador_e_le_as_metricas()
+    {
+        var token = await Entrar();
+        var telefone = $"49 9{Random.Shared.Next(1000, 9999)}-{Random.Shared.Next(1000, 9999)}";
+        using var salvar = Com(HttpMethod.Post, "/api/Operador", token);
+        salvar.Content = JsonContent.Create(new { telefone, nome = "Bruna", ativo = true });
+        Assert.Equal(HttpStatusCode.OK, (await api.Cliente.SendAsync(salvar)).StatusCode);
+
+        using var metricas = Com(HttpMethod.Get, "/api/Metricas?dias=7", token);
+        var resposta = await api.Cliente.SendAsync(metricas);
+
+        Assert.Equal(HttpStatusCode.OK, resposta.StatusCode);
+        using var json = JsonDocument.Parse(await resposta.Content.ReadAsStringAsync());
+        Assert.Equal(7, json.RootElement.GetProperty("dados").GetProperty("cliquesPorDia").GetArrayLength());
+    }
+
+    [Fact]
+    public async Task Saida_do_modo_simulado_responde_fora_de_producao() =>
+        Assert.Equal(HttpStatusCode.OK, (await api.Cliente.GetAsync("/api/whatsapp/webhook/saida")).StatusCode);
 
     [Fact]
     public async Task Webhook_verifica_o_token_da_Meta()

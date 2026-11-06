@@ -1,0 +1,35 @@
+@* Colunas por dia (cliques no WhatsApp). *@
+<figure>
+    <figcaption class="sr-only">@Rotulo: total @Dias.Sum(d => d.Total) no período</figcaption>
+    <div class="flex h-40 items-end gap-[2px]" role="img" aria-label="@($"{Rotulo} por dia")">
+        @foreach (var dia in Dias)
+        {
+            <div class="group relative flex h-full flex-1 items-end">
+                <div class="w-full rounded-t-[3px] bg-whatsapp/80 transition-colors group-hover:bg-whatsapp-dark" style="@Altura(dia)"></div>
+                <span class="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 hidden -translate-x-1/2 rounded-md bg-navy-900 px-2 py-1 text-[11px] whitespace-nowrap text-white group-hover:block">
+                    @dia.Dia.ToString("dd/MM"): @dia.Total
+                </span>
+            </div>
+        }
+    </div>
+    <div class="mt-2 flex justify-between text-[10px] text-navy-400 tabular-nums">
+        @foreach (var dia in Dias.Where((_, i) => i % Passo == 0))
+        {
+            <span>@dia.Dia.ToString("dd/MM")</span>
+        }
+    </div>
+</figure>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<TotalDoDia> Dias { get; set; } = [];
+    [Parameter, EditorRequired] public string Rotulo { get; set; } = "";
+
+    private int Maximo => Math.Max(1, Dias.Count == 0 ? 0 : Dias.Max(d => d.Total));
+    private int Passo => Math.Max(1, (int)Math.Ceiling(Dias.Count / 8d));
+
+    private string Altura(TotalDoDia dia)
+    {
+        var altura = Math.Max(dia.Total > 0 ? 4 : 1, dia.Total * 100d / Maximo);
+        return FormattableString.Invariant($"height: {altura:0.##}%; opacity: {(dia.Total > 0 ? 1 : 0.25)}");
+    }
+}

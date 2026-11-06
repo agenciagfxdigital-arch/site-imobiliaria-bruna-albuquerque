@@ -120,3 +120,16 @@
     display: none;
   }
 }
+
+/* Aviso de erro do painel: o Blazor só o mostra (display: block) quando algo falha de verdade */
+#blazor-error-ui {
+  @apply fixed inset-x-0 bottom-0 z-50 hidden bg-rose-50 px-4 py-3 text-sm text-rose-800 shadow-lg;
+}
+
+#blazor-error-ui .reload {
+  @apply font-medium underline;
+}
+
+#blazor-error-ui .dismiss {
+  @apply absolute top-2.5 right-3 cursor-pointer;
+}

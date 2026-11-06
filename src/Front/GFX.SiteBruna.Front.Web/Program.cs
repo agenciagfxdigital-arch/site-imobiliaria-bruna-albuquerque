@@ -4,6 +4,7 @@ using GFX.SiteBruna.Front.Web.Components;
 using GFX.SiteBruna.Front.Web.Configuracao;
 using GFX.SiteBruna.Front.Web.Endpoints;
 using GFX.SiteBruna.Front.Web.Services;
+using Microsoft.AspNetCore.DataProtection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +25,8 @@ void Cliente(HttpClient http, TimeSpan tempo)
 }
 builder.Services.AddHttpClient<SiteApi>(h => Cliente(h, TimeSpan.FromSeconds(15)));
 builder.Services.AddHttpClient<UsuarioApi>(h => Cliente(h, TimeSpan.FromSeconds(15)));
+builder.Services.AddHttpClient<OperadorApi>(h => Cliente(h, TimeSpan.FromSeconds(15)));
+builder.Services.AddHttpClient<MetricasApi>(h => Cliente(h, TimeSpan.FromSeconds(30)));
 builder.Services.AddHttpClient<ConteudoApi>(h => Cliente(h, TimeSpan.FromSeconds(60)));
 builder.Services.AddHttpClient<ImovelApi>(h => Cliente(h, TimeSpan.FromSeconds(60)));
 builder.Services.AddScoped<DadosDoSite>();
@@ -33,8 +36,17 @@ builder.Services.AddScoped<OrigemDaConexao>();
 builder.Services.AddOutputCache();
 builder.Services.AddSingleton<CacheDoSite>();
 
+// A sessão do painel é criptografada com estas chaves: na VPS ficam num volume, para um deploy não derrubar quem está logado
+if (builder.Configuration["DataProtection:PastaDasChaves"] is { Length: > 0 } pastaDasChaves)
+{
+    builder.Services.AddDataProtection()
+        .SetApplicationName("GFX.SiteBruna")
+        .PersistKeysToFileSystem(new DirectoryInfo(Path.GetFullPath(pastaDasChaves, builder.Environment.ContentRootPath)));
+}
+
 var app = builder.Build();
 
+app.UseCabecalhosDeSeguranca();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/erro", createScopeForErrors: true);

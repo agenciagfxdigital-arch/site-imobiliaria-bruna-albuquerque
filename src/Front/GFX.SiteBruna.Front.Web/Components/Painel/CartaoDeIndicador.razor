@@ -1,0 +1,29 @@
+@* Número do período com a comparação com o período anterior. *@
+<div class="card p-4 sm:p-5">
+    <p class="text-xs font-medium text-navy-500 sm:text-sm">@Rotulo</p>
+    <p class="mt-1 text-2xl font-semibold text-navy-900 tabular-nums sm:text-3xl">@Indicador.Valor.ToString("N0", PtBr)</p>
+    <div class="mt-1 min-h-4">
+        @if (Indicador is { Valor: 0, Anterior: 0 })
+        {
+            <span class="text-xs text-navy-400">sem dados no período anterior</span>
+        }
+        else if (Indicador.Variacao is { } variacao)
+        {
+            <span class="@($"inline-flex items-center gap-0.5 text-xs font-medium {(variacao > 0 ? "text-emerald-700" : variacao < 0 ? "text-rose-700" : "text-navy-500")}")">
+                <Icone Nome="@(variacao > 0 ? "arrow-up-right" : variacao < 0 ? "arrow-down-right" : "arrow-right")" Classe="size-3.5" />
+                @(variacao > 0 ? "+" : "")@variacao% vs. período anterior
+            </span>
+        }
+        else
+        {
+            <span class="text-xs font-medium text-emerald-700">novo no período</span>
+        }
+    </div>
+</div>
+
+@code {
+    private static readonly System.Globalization.CultureInfo PtBr = new("pt-BR");
+
+    [Parameter, EditorRequired] public string Rotulo { get; set; } = "";
+    [Parameter, EditorRequired] public IndicadorResponse Indicador { get; set; } = null!;
+}

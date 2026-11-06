@@ -1,0 +1,73 @@
+@* Quem pode usar o assistente do WhatsApp para cadastrar e alterar imóveis. *@
+@inject OperadorApi Operadores
+
+<Secao Titulo="Assistente do WhatsApp">
+    <p class="text-sm text-navy-600">Só os telefones desta lista conseguem falar com o assistente.</p>
+    <ul class="divide-y divide-navy-100">
+        @foreach (var o in Lista)
+        {
+            <li class="flex items-center justify-between gap-3 py-2 text-sm">
+                <span>
+                    <span class="block font-medium">@o.Nome</span>
+                    <span class="text-navy-500">@Formato.Telefone(o.Telefone)@(o.Ativo ? "" : " · sem acesso")</span>
+                </span>
+                <button type="button" class="btn-outline min-h-10 px-3 text-sm" disabled="@Ocupado" @onclick="() => Alternar(o)">
+                    @(o.Ativo ? "Tirar acesso" : "Devolver acesso")
+                </button>
+            </li>
+        }
+    </ul>
+    <div class="grid gap-3 sm:grid-cols-2">
+        <input class="field" placeholder="Nome" @bind="Nome" />
+        <input class="field" type="tel" placeholder="Telefone com DDD" @bind="Telefone" />
+    </div>
+    <button type="button" class="btn-outline min-h-11 px-4 text-sm" disabled="@Ocupado" @onclick="Adicionar"><Icone Nome="plus" Classe="size-4" /> Autorizar telefone</button>
+    <Mensagem Erro="@Erro" Sucesso="@Aviso" />
+</Secao>
+
+@code {
+    private List<OperadorResponse> Lista { get; set; } = [];
+    private string Nome { get; set; } = "";
+    private string Telefone { get; set; } = "";
+    private bool Ocupado { get; set; }
+    private string? Erro { get; set; }
+    private string? Aviso { get; set; }
+
+    protected override Task OnInitializedAsync() => Carregar();
+
+    private async Task Carregar()
+    {
+        var resposta = await Operadores.Listar();
+        if (resposta.Sucesso) Lista = resposta.Dados!;
+        else Erro = string.Join(" ", resposta.Mensagens);
+    }
+
+    private async Task Adicionar()
+    {
+        if (await Salvar(new SalvarOperadorRequest(Telefone.Trim(), Nome.Trim(), true)) is { } salvo)
+        {
+            (Nome, Telefone) = ("", "");
+            Aviso = $"{salvo.Nome} já pode usar o assistente.";
+        }
+    }
+
+    private async Task Alternar(OperadorResponse operador)
+    {
+        if (await Salvar(new SalvarOperadorRequest(operador.Telefone, operador.Nome, !operador.Ativo)) is { } salvo)
+            Aviso = salvo.Ativo ? $"{salvo.Nome} voltou a usar o assistente." : $"{salvo.Nome} não pode mais usar o assistente.";
+    }
+
+    private async Task<OperadorResponse?> Salvar(SalvarOperadorRequest request)
+    {
+        (Erro, Aviso, Ocupado) = (null, null, true);
+        var resposta = await Operadores.Salvar(request);
+        Ocupado = false;
+        if (!resposta.Sucesso)
+        {
+            Erro = string.Join(" ", resposta.Mensagens);
+            return null;
+        }
+        await Carregar();
+        return resposta.Dados;
+    }
+}

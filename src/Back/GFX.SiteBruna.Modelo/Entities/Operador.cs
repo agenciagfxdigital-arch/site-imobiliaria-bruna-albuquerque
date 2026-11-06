@@ -35,6 +35,19 @@ public sealed class Operador
             ? operador
             : throw new DomainException(CodigoErro.NaoAutorizado, "Este telefone não está autorizado a usar o assistente.");
 
+    /// <summary>Telefone digitado no painel. Erro de digitação é validação, não falta de permissão de quem está logado.</summary>
+    public static string TelefoneDoCadastro(string? telefone)
+    {
+        try
+        {
+            return Regras.Telefone.Normalizar(telefone);
+        }
+        catch (DomainException)
+        {
+            throw DomainException.Validacao("Informe o telefone com DDD (ex.: 49 99999-9999).");
+        }
+    }
+
     public void Renomear(string nome)
     {
         var limpo = nome.Trim();

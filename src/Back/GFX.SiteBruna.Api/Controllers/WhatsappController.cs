@@ -1,6 +1,7 @@
 using System.Text.Json;
 using GFX.SiteBruna.Api.RateLimiting;
 using GFX.SiteBruna.Api.Whatsapp;
+using GFX.SiteBruna.Aplicacao.Interfaces;
 using GFX.SiteBruna.Aplicacao.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -17,7 +18,8 @@ namespace GFX.SiteBruna.Api.Controllers;
 [AllowAnonymous]
 [EnableRateLimiting(Limites.Webhook)]
 public sealed class WhatsappController(
-    IOptions<OpcoesDoWebhook> opcoes, AssistenteService assistente, FilaDeProcessamento fila, ILogger<WhatsappController> logger)
+    IOptions<OpcoesDoWebhook> opcoes, AssistenteService assistente, FilaDeProcessamento fila, ISaidaDoWhatsappSimulado saida,
+    IHostEnvironment ambiente, ILogger<WhatsappController> logger)
     : ControllerBase
 {
     private readonly OpcoesDoWebhook _opcoes = opcoes.Value;
@@ -33,6 +35,11 @@ public sealed class WhatsappController(
             ? Content(desafio ?? "", "text/plain")
             : StatusCode(StatusCodes.Status403Forbidden);
     }
+
+    /// <summary>Só no modo simulado e fora de produção: o que teria sido enviado (usado pelo comando simular-whatsapp).</summary>
+    [HttpGet("saida")]
+    public IActionResult Saida() =>
+        _opcoes.Habilitado && _opcoes.Modo == "simulado" && !ambiente.IsProduction() ? Ok(saida.Retirar()) : NotFound();
 
     [HttpPost]
     [RequestSizeLimit(1024 * 1024)]
