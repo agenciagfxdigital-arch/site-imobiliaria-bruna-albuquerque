@@ -43,7 +43,8 @@
 
 	@raiz path /
 	handle @raiz {
-		redir /admin 302
+		# O * é necessário: sem ele, o Caddy lê "/admin" como filtro de rota, não como destino
+		redir * /admin 302
 	}
 
 	# Os links "ver no site" do painel são relativos
