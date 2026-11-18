@@ -111,6 +111,9 @@ O backup do banco é o do Supabase: confira o que o plano contratado oferece.
 
 ## WhatsApp com a Meta
 
+Assistente descontinuado neste projeto: deixe `WHATSAPP_HABILITADO=false` (a rota do webhook responde 404). Os passos
+abaixo ficam só como referência para outro projeto; o passo 3 dependia da seção do painel, que foi removida.
+
 1. No `.env`: `WHATSAPP_HABILITADO=true`, `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_APP_SECRET` e
    `WHATSAPP_VERIFY_TOKEN` (16+ caracteres). Depois, `docker compose up -d`.
 2. Na Meta, aponte o webhook para `https://<DOMINIO>/api/whatsapp/webhook`, com o mesmo Verify Token.

@@ -64,10 +64,6 @@
                             {
                                 <span title="Destaque" aria-label="Destaque"><Icone Nome="star" Classe="size-3.5 text-gold-500" /></span>
                             }
-                            @if (p.Origem == OrigemImovel.Whatsapp)
-                            {
-                                <span class="text-[11px] text-navy-400">pelo WhatsApp</span>
-                            }
                         </div>
                         <a href="@($"/admin/imoveis/{p.Id}")" class="mt-1 line-clamp-2 text-sm font-medium hover:underline sm:text-base">@p.Titulo</a>
                         <p class="mt-0.5 text-sm text-navy-600">@Formato.PrecoPrincipal(p.Finalidade, p.Preco, p.Aluguel)</p>

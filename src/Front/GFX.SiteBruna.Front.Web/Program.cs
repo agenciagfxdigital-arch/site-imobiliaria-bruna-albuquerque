@@ -25,7 +25,6 @@ void Cliente(HttpClient http, TimeSpan tempo)
 }
 builder.Services.AddHttpClient<SiteApi>(h => Cliente(h, TimeSpan.FromSeconds(15)));
 builder.Services.AddHttpClient<UsuarioApi>(h => Cliente(h, TimeSpan.FromSeconds(15)));
-builder.Services.AddHttpClient<OperadorApi>(h => Cliente(h, TimeSpan.FromSeconds(15)));
 builder.Services.AddHttpClient<MetricasApi>(h => Cliente(h, TimeSpan.FromSeconds(30)));
 builder.Services.AddHttpClient<ConteudoApi>(h => Cliente(h, TimeSpan.FromSeconds(60)));
 builder.Services.AddHttpClient<ImovelApi>(h => Cliente(h, TimeSpan.FromSeconds(60)));

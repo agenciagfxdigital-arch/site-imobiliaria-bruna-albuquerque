@@ -16,7 +16,7 @@
         @if (!Novo && Detalhe is not null)
         {
             <p class="text-xs text-navy-500">
-                @(Detalhe.Origem == OrigemImovel.Whatsapp ? "Cadastrado pelo WhatsApp · " : "")Atualizado em @Formato.Data(Detalhe.AtualizadoEm, comHora: true)
+                Atualizado em @Formato.Data(Detalhe.AtualizadoEm, comHora: true)
                 @(Detalhe.AtualizadoPor is { } por ? $" por {por}" : "")
             </p>
         }

@@ -74,7 +74,10 @@ dotnet run --project src/Back/GFX.SiteBruna.Api -- carregar-conteudo-inicial
 
 ## Assistente do WhatsApp
 
-Quem pode usar o assistente é autorizado no painel, em Configurações → Assistente do WhatsApp.
+Descontinuado neste projeto: imóveis são cadastrados e editados só pelo painel, e a seção "Assistente do WhatsApp" saiu
+do painel. O código do back (webhook, fila, ficha, operadores e `/api/Operador`) continua no projeto, desligado
+(`WhatsApp:Habilitado=false`), para reaproveitar em outro projeto. Sem a seção, os telefones autorizados só seriam
+cadastrados direto pela `/api/Operador`.
 
 Para testar sem a Meta, ligue `WhatsApp:Habilitado=true` e grave `WhatsApp:AppSecret` e `WhatsApp:VerifyToken` nos user
 secrets (16+ caracteres; o modo `simulado` já vem no `appsettings.Development.json`). Com a Api rodando, em outro terminal:
